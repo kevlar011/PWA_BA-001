@@ -1,7 +1,7 @@
 {
   "name": "KEVLAR",
   "short_name": "KEVLAR",
-  "description": "Personal mainframe. Banking and docket. Local only.",
+  "description": "Personal mainframe. Banking and docket, on your device.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

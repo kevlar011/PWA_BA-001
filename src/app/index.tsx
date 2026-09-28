@@ -7,14 +7,14 @@ import { Bric, LeaderRow, Vane } from '@/components/ui/agency';
 import { Fade, Rise } from '@/components/ui/motion';
 import { Tap } from '@/components/ui/press';
 import { Row, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
-import { bricBriefing } from '@/lib/bric';
+import { useBriefing } from '@/lib/bric';
 import { formatIn } from '@/lib/currency';
 import { dueLabel } from '@/lib/date';
 import { useSession } from '@/lib/session';
 import { balance, openTasks, overdueTasks, useData, useDocket } from '@/lib/store';
 import { vaneBriefing } from '@/lib/vane';
 import { color, glyph, radius, space, subsystem } from '@/theme/tokens';
-import type { BriefTone } from '@/lib/bric';
+import type { BriefTone } from '@/lib/brief';
 import type { Mood } from '@/components/ui/agency';
 
 const TONE: Record<BriefTone, string> = {
@@ -28,12 +28,13 @@ const TONE: Record<BriefTone, string> = {
 /* Boot                                                                       */
 /* -------------------------------------------------------------------------- */
 
-const BOOT = [
+const boot = (linked: boolean) => [
   'KEVLAR MAINFRAME',
   'POST .................. OK',
   'LOCAL STORE ........... MOUNTED',
   'CIPHER ................ AES-GCM',
   'BNK-001 ............... ONLINE',
+  `  NEURAL LINK ......... ${linked ? 'ESTABLISHED' : 'OFFLINE'}`,
   'DKT-002 ............... ONLINE',
   'READY',
 ];
@@ -45,8 +46,9 @@ const BOOT = [
  * launch, not once per visit, so backing out of a subsystem never makes him
  * sit through it again.
  */
-function BootSequence({ onDone }: { onDone: () => void }) {
+function BootSequence({ onDone, linked }: { onDone: () => void; linked: boolean }) {
   const [line, setLine] = useState(0);
+  const BOOT = boot(linked);
 
   useEffect(() => {
     if (line >= BOOT.length) {
@@ -55,7 +57,7 @@ function BootSequence({ onDone }: { onDone: () => void }) {
     }
     const id = setTimeout(() => setLine((n) => n + 1), line === 0 ? 190 : 95);
     return () => clearTimeout(id);
-  }, [line, onDone]);
+  }, [line, onDone, BOOT.length]);
 
   return (
     <View style={s.boot}>
@@ -168,7 +170,7 @@ export default function Mainframe() {
   const booted = useSession((s) => s.booted);
   const setBooted = useSession((s) => s.setBooted);
 
-  const bank = bricBriefing(data);
+  const { briefing: bank } = useBriefing(data);
   const desk = vaneBriefing(docket);
 
   const open = openTasks(docket);
@@ -179,7 +181,7 @@ export default function Mainframe() {
     .filter((t) => t.due !== undefined && (t.due as number) >= Date.now())
     .sort((a, b) => (a.due ?? 0) - (b.due ?? 0))[0];
 
-  if (!booted) return <BootSequence onDone={() => setBooted(true)} />;
+  if (!booted) return <BootSequence linked={!!data.settings.aiKey} onDone={() => setBooted(true)} />;
 
   const deskHeadline =
     open.length === 0
@@ -219,6 +221,11 @@ export default function Mainframe() {
           <LeaderRow label="Operator" value={data.settings.name || 'UNNAMED'} />
           <Clock />
           <LeaderRow label="Subsystems" value="2 ONLINE" tone={color.income} />
+          <LeaderRow
+            label="BRIC"
+            value={data.settings.aiKey ? 'NEURAL LINK' : 'DORMANT'}
+            tone={data.settings.aiKey ? color.accent : color.textFaint}
+          />
           <LeaderRow label="Data" value="LOCAL · ENCRYPTED" />
         </View>
       </Rise>

@@ -45,7 +45,14 @@ function mergeList<T extends WithId>(local: T[], remote: T[]): T[] {
 }
 
 /** Never travels: how *this* device reaches the server is its own business. */
-const DEVICE_ONLY = ['syncUrl', 'syncKey', 'passphrase', 'passphraseCheck', 'syncedAt'] as const;
+const DEVICE_ONLY = [
+  'syncUrl',
+  'syncKey',
+  'passphrase',
+  'passphraseCheck',
+  'syncedAt',
+  'aiKey',
+] as const;
 
 /** Treats blank strings and undefined as "never actually set". */
 function isBlank(v: unknown): boolean {

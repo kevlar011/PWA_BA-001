@@ -92,16 +92,18 @@ export default function NoteEditor() {
       if (justFinished) {
         say(vaneOnDone(patch.title, weeklyRate(docket) + 1), {
           mood: 'happy',
+          unit: 'vane',
           undo: () => updateTask(before.id, before),
         });
       } else {
-        say('Updated.', { mood: 'idle', undo: () => updateTask(before.id, before) });
+        say('Updated.', { mood: 'idle', unit: 'vane', undo: () => updateTask(before.id, before) });
       }
     } else {
       const id = addTask(patch);
       notify('success');
       say(vaneOnAdd(patch.title, due !== undefined), {
         mood: 'idle',
+        unit: 'vane',
         undo: () => removeTask(id),
       });
     }
@@ -123,7 +125,11 @@ export default function NoteEditor() {
                 const id = editing.id;
                 removeTask(id);
                 notify('warning');
-                say('Removed from the docket.', { mood: 'warn', undo: () => undeleteTask(id) });
+                say('Removed from the docket.', {
+                  mood: 'warn',
+                  unit: 'vane',
+                  undo: () => undeleteTask(id),
+                });
                 router.back();
               }}>
               <Txt variant="caption" weight="bold" tone={color.danger}>

@@ -7,7 +7,7 @@ import { Rise } from '@/components/ui/motion';
 import { Amount, Card, Empty, Row, Screen, Txt } from '@/components/ui/primitives';
 import { formatIn } from '@/lib/currency';
 import { dayLabel, startOfDay } from '@/lib/date';
-import { useSession } from '@/lib/session';
+import { bricSay } from '@/lib/bric';
 import { useData, useStore } from '@/lib/store';
 import type { Transaction, TxKind } from '@/lib/types';
 import { color, radius, space } from '@/theme/tokens';
@@ -25,7 +25,6 @@ export default function Log() {
   const data = useData();
   const removeTransaction = useStore((s) => s.removeTransaction);
   const undeleteTransaction = useStore((s) => s.undeleteTransaction);
-  const say = useSession((s) => s.say);
   const { currency } = data.settings;
 
   const [query, setQuery] = useState('');
@@ -140,7 +139,10 @@ export default function Log() {
                       onPress={() => router.push({ pathname: '/add', params: { id: t.id } })}
                       onLongPress={() => {
                         removeTransaction(t.id);
-                        say('Deleted.', { mood: 'warn', undo: () => undeleteTransaction(t.id) });
+                        bricSay('ENTRY STRUCK', { type: 'delete' }, {
+                          mood: 'warn',
+                          undo: () => undeleteTransaction(t.id),
+                        });
                       }}
                       style={({ pressed }) => [
                         s.row,

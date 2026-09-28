@@ -86,7 +86,7 @@ const STEPS: Step[] = [
     route: '/bank/advisor',
     unit: 'bric',
     mood: 'warn',
-    says: 'And this is me. I read your figures and give you the honest version, zakat included. Nothing leaves the device.',
+    says: 'The advisory. Link me in Settings and I write this up myself, zakat included — or open a channel from Banking and simply talk to me.',
     top: 0.14,
     height: 0.26,
   },

@@ -10,10 +10,11 @@ import { Rise } from '@/components/ui/motion';
 import { Button, Card, Row, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
 import { CURRENCIES, byCode } from '@/lib/currency';
 import { parseAmount } from '@/lib/money';
-import { bricOnRestore } from '@/lib/bric';
+import { NeuralLink } from '@/components/neural-link';
+import { bricSay } from '@/lib/bric';
+import { useBric } from '@/lib/bric-store';
 import { fingerprint } from '@/lib/crypto';
 import { checkPassphrase, enrolPasskey, forgetPasskey, hasPasskey } from '@/lib/lock';
-import { useSession } from '@/lib/session';
 import { useData, useStore } from '@/lib/store';
 import type { KevlarData } from '@/lib/types';
 import { color, radius, space, swatch } from '@/theme/tokens';
@@ -26,7 +27,6 @@ export default function Settings() {
   const removeCategory = useStore((s) => s.removeCategory);
   const resetAll = useStore((s) => s.resetAll);
   const restore = useStore((s) => s.restore);
-  const say = useSession((s) => s.say);
 
   const [newCat, setNewCat] = useState('');
   const [newIcon, setNewIcon] = useState('🏷️');
@@ -52,7 +52,9 @@ export default function Settings() {
       goals: data.goals,
       recurring: data.recurring,
       tasks: data.tasks,
-      settings: data.settings,
+      // A backup file gets emailed, uploaded, left in Downloads. The API key
+      // has no business being in one.
+      settings: { ...data.settings, aiKey: undefined },
     };
     const json = JSON.stringify(payload, null, 2);
     const filename = `kevlar-backup-${new Date().toISOString().slice(0, 10)}.json`;
@@ -104,7 +106,7 @@ export default function Settings() {
           return;
         }
         const count = Array.isArray(parsed?.transactions) ? parsed.transactions.length : 0;
-        say(bricOnRestore(count), { mood: 'happy' });
+        bricSay(`RESTORED · ${count} ENTRIES`, { type: 'restore', count }, { mood: 'happy' });
         setStatus(null);
         router.replace('/');
       } catch {
@@ -116,6 +118,7 @@ export default function Settings() {
 
   function wipe() {
     resetAll();
+    useBric.getState().forget();
     setArmed(false);
     setTyped('');
     router.replace('/onboarding');
@@ -189,6 +192,12 @@ export default function Settings() {
             Your balance is this number plus everything you've logged since.
           </Txt>
         </Card>
+      </Rise>
+
+      {/* BRIC */}
+      <Rise delay={75}>
+        <SectionTitle>BRIC · Neural link</SectionTitle>
+        <NeuralLink />
       </Rise>
 
       {/* Currency */}

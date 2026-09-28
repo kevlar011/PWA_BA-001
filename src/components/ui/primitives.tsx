@@ -33,10 +33,11 @@ export function Scanlines() {
       pointerEvents="none"
       style={[
         StyleSheet.absoluteFill,
+        // `backgroundImage` is a web-only style React Native's types don't know.
         {
           zIndex: 999,
           backgroundImage: `repeating-linear-gradient(0deg, ${color.scanline} 0px, ${color.scanline} 1px, transparent 1px, transparent 3px)`,
-        },
+        } as ViewStyle,
       ]}
     />
   );

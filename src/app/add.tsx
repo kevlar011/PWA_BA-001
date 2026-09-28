@@ -6,11 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Keypad } from '@/components/ui/keypad';
 import { notify } from '@/components/ui/press';
 import { Button, Row, Txt } from '@/components/ui/primitives';
-import { bricOnEdit, bricOnLog } from '@/lib/bric';
-import { byCode } from '@/lib/currency';
+import { bricSay } from '@/lib/bric';
+import { byCode, formatIn } from '@/lib/currency';
 import { DAY, shortDate, startOfDay } from '@/lib/date';
 import { parseAmount } from '@/lib/money';
-import { useSession } from '@/lib/session';
 import { useData, useStore } from '@/lib/store';
 import type { TxKind } from '@/lib/types';
 import { color, radius, space } from '@/theme/tokens';
@@ -25,8 +24,7 @@ export default function AddTransaction() {
   const updateTransaction = useStore((s) => s.updateTransaction);
   const removeTransaction = useStore((s) => s.removeTransaction);
   const undeleteTransaction = useStore((s) => s.undeleteTransaction);
-  const say = useSession((s) => s.say);
-  const { currency, name } = data.settings;
+  const { currency } = data.settings;
 
   // Editing an existing entry rather than creating one.
   const editing = data.transactions.find((t) => t.id === params.id);
@@ -63,23 +61,20 @@ export default function AddTransaction() {
         date,
       });
       notify('success');
-      say(bricOnEdit(), {
+      bricSay('ENTRY AMENDED', { type: 'edit' }, {
         mood: 'idle',
         undo: () => updateTransaction(before.id, before),
       });
     } else {
-      const id = addTransaction({
-        kind,
-        amount: cents,
-        categoryId,
-        note: note.trim() || undefined,
-        date,
-      });
+      const trimmed = note.trim() || undefined;
+      const id = addTransaction({ kind, amount: cents, categoryId, note: trimmed, date });
       notify('success');
-      say(bricOnLog(kind, cents, name), {
-        mood: kind === 'income' ? 'happy' : 'idle',
-        undo: () => removeTransaction(id),
-      });
+      const cat = data.categories.find((c) => c.id === categoryId);
+      bricSay(
+        `LOGGED ${kind === 'income' ? '+' : '−'}${formatIn(cents, currency)}${cat ? ` · ${cat.name.toUpperCase()}` : ''}`,
+        { type: 'log', kind, amount: cents, categoryId, note: trimmed },
+        { mood: kind === 'income' ? 'happy' : 'idle', undo: () => removeTransaction(id) }
+      );
     }
 
     router.back();
@@ -99,7 +94,7 @@ export default function AddTransaction() {
                 const id = editing.id;
                 removeTransaction(id);
                 notify('warning');
-                say('Deleted.', { mood: 'warn', undo: () => undeleteTransaction(id) });
+                bricSay('ENTRY STRUCK', { type: 'delete' }, { mood: 'warn', undo: () => undeleteTransaction(id) });
                 router.back();
               }}>
               <Txt variant="caption" weight="bold" tone={color.danger}>

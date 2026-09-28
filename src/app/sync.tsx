@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { BricSays, FileHeader, LeaderRow } from '@/components/ui/agency';
+import { FileHeader, LeaderRow } from '@/components/ui/agency';
 import { Rise } from '@/components/ui/motion';
 import { notify } from '@/components/ui/press';
 import { Button, Card, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
@@ -108,6 +108,7 @@ export default function Sync() {
         syncKey: settings.syncKey,
         passphrase: pass,
         passphraseCheck: await fingerprint(pass),
+        aiKey: settings.aiKey,
         syncedAt: Date.now(),
       },
     });
@@ -135,11 +136,13 @@ export default function Sync() {
       </Rise>
 
       <Rise delay={60}>
-        <BricSays mood="think">
-          Your ledger is encrypted here before it goes anywhere. The server holds a blob it cannot
-          read, under an identifier it cannot reverse. Lose the passphrase and the data is gone for
-          good — there is no reset, by design.
-        </BricSays>
+        <Card tint={color.border}>
+          <Txt variant="caption" dim style={{ lineHeight: 19 }}>
+            Your ledger is encrypted here before it goes anywhere. The server holds a blob it cannot
+            read, under an identifier it cannot reverse. Lose the passphrase and the data is gone
+            for good — there is no reset, by design.
+          </Txt>
+        </Card>
       </Rise>
 
       <Rise delay={120}>

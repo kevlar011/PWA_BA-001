@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
 import { runSync, startPolling, watchForChanges } from '@/lib/autosync';
-import { bricOnBillsPosted } from '@/lib/bric';
+import { bricSay } from '@/lib/bric';
 import { useSession } from '@/lib/session';
 import { dueSoon, useStore } from '@/lib/store';
 import { reconcileHawl } from '@/lib/zakat';
@@ -35,7 +35,12 @@ export function AppTick() {
     const overdue = state.recurring.filter((r) => r.active && r.nextDue <= Date.now());
     const posted = postDueRecurring();
     if (posted > 0) {
-      say(bricOnBillsPosted(overdue.map((r) => r.name)), { mood: 'idle' });
+      const names = overdue.map((r) => r.name);
+      bricSay(
+        `AUTO-POSTED · ${names.length === 1 ? names[0].toUpperCase() : `${names.length} STANDING PAYMENTS`}`,
+        { type: 'bills', names },
+        { mood: 'idle' }
+      );
     }
 
     const patch = reconcileHawl(useStore.getState());

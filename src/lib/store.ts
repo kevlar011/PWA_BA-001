@@ -331,7 +331,9 @@ export const useStore = create<KevlarStore>()(
           recurring: d.recurring!,
           tasks: d.tasks ?? [],
           // Merge over defaults so a backup from an older build still opens.
-          settings: { ...seedSettings(), ...d.settings },
+          // The neural link key never travels in a backup, so keep this
+          // device's rather than silently unlinking BRIC.
+          settings: { ...seedSettings(), ...d.settings, aiKey: get().settings.aiKey },
         });
         return { ok: true };
       },

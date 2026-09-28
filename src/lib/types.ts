@@ -184,6 +184,16 @@ export type Settings = {
    */
   passphrase?: string;
   syncedAt?: number;
+
+  /* --- BRIC's neural link ------------------------------------------------ */
+
+  /**
+   * DeepSeek API key. Device-only, like the sync credentials: never synced,
+   * never exported, and never built into the site — the site is public.
+   */
+  aiKey?: string;
+  /** Which model BRIC thinks with. Harmless to sync. */
+  aiModel?: 'deepseek-flash' | 'deepseek-v4-pro';
 };
 
 export type KevlarData = {

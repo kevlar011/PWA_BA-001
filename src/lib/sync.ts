@@ -43,6 +43,7 @@ function forUpload(data: KevlarData): KevlarData {
   delete settings.passphraseCheck;
   delete settings.passphrase;
   delete settings.syncedAt;
+  delete settings.aiKey;
   return { ...data, settings };
 }
 

@@ -1,12 +1,14 @@
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { LinkStatus } from '@/components/link-status';
 import { Bric, LeaderRow } from '@/components/ui/agency';
 import { CurrencyStrip } from '@/components/ui/currency-strip';
 import { Rise, useRolling, useTypewriter } from '@/components/ui/motion';
 import { Tap } from '@/components/ui/press';
-import { Amount, Card, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
-import { bricBriefing, type BriefTone } from '@/lib/bric';
+import { Amount, Card, Cursor, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
+import { useBriefing, type BriefTone } from '@/lib/bric';
+import { useBric } from '@/lib/bric-store';
 import { formatIn } from '@/lib/currency';
 import { dayLabel } from '@/lib/date';
 import { balance, monthTotals, useData } from '@/lib/store';
@@ -31,7 +33,8 @@ export default function Home() {
   const catById = new Map(data.categories.map((c) => [c.id, c]));
   const money = (c: number) => formatIn(c, currency);
 
-  const brief = bricBriefing(data);
+  const { briefing: brief, live, linked } = useBriefing(data);
+  const faulted = useBric((s) => s.link === 'error');
   // BRIC's greeting types itself out, so opening the app feels like he is
   // addressing you rather than a label being rendered.
   const greeting = useTypewriter(brief.greeting, 72);
@@ -43,13 +46,29 @@ export default function Home() {
       <Screen>
         {/* BRIC leads. Everything else is his supporting material. */}
         <Rise delay={40}>
-          <Card label="briefing" tint={TONE[brief.items[0]?.tone ?? 'good']}>
+          <Card label="bric · neural link" tint={TONE[brief.items[0]?.tone ?? 'good']}>
             <Row style={{ gap: space.md, alignItems: 'flex-start' }}>
-              <Bric mood={brief.mood} size={54} />
+              <Tap scale={0.94} weight="medium" onPress={() => router.push(linked ? '/bric' : '/settings')}>
+                <Bric mood={brief.mood} size={68} />
+              </Tap>
               <View style={{ flex: 1 }}>
-                <Txt variant="caption" style={{ lineHeight: 19, minHeight: 38 }}>
-                  {greeting}
-                </Txt>
+                <LinkStatus />
+                {live ? (
+                  <Row style={{ flexWrap: 'wrap' }}>
+                    <Txt variant="caption" style={{ lineHeight: 19, minHeight: 38 }}>
+                      {greeting}
+                      {greeting.length < brief.greeting.length ? <Cursor /> : null}
+                    </Txt>
+                  </Row>
+                ) : (
+                  <Txt variant="micro" faint style={{ lineHeight: 16, marginTop: 4 }}>
+                    {!linked
+                      ? 'BRIC is dormant. Link a DeepSeek key and he wakes. Telemetry below.'
+                      : faulted
+                        ? 'Link fault — showing raw telemetry. Tap the core to retry in the channel.'
+                        : 'Composing… showing raw telemetry meanwhile.'}
+                  </Txt>
+                )}
               </View>
             </Row>
 
@@ -71,6 +90,16 @@ export default function Home() {
                 </Txt>
               </Tap>
             ))}
+
+            <Tap
+              scale={0.98}
+              weight="medium"
+              style={s.talk}
+              onPress={() => router.push(linked ? '/bric' : '/settings')}>
+              <Txt variant="micro" weight="bold" spaced tone={color.accent}>
+                {linked ? `${glyph.arrow} OPEN CHANNEL TO BRIC` : `${glyph.arrow} LINK BRIC`}
+              </Txt>
+            </Tap>
           </Card>
         </Rise>
 
@@ -194,6 +223,15 @@ const s = StyleSheet.create({
     paddingVertical: space.sm,
   },
   dot: { width: 7, height: 7, borderRadius: 4 },
+  talk: {
+    marginTop: space.sm,
+    borderWidth: 1,
+    borderColor: color.accentDim,
+    backgroundColor: color.glow,
+    borderRadius: radius.md,
+    paddingVertical: space.sm,
+    alignItems: 'center',
+  },
   quick: {
     width: 84,
     height: 76,

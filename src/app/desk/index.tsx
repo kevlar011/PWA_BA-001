@@ -11,7 +11,7 @@ import { useSession } from '@/lib/session';
 import { isDone, openTasks, sortTasks, taskProgress, useDocket, useStore } from '@/lib/store';
 import { vaneBriefing, vaneOnAdd, vaneOnDone, vaneOnUndo, weeklyRate } from '@/lib/vane';
 import { color, glyph, radius, space, subsystem } from '@/theme/tokens';
-import type { BriefTone } from '@/lib/bric';
+import type { BriefTone } from '@/lib/brief';
 import type { Task } from '@/lib/types';
 
 const TONE: Record<BriefTone, string> = {
@@ -166,7 +166,7 @@ export default function Docket() {
     const id = addTask({ title });
     setDraft('');
     notify('success');
-    say(vaneOnAdd(title, false), { mood: 'idle', undo: () => removeTask(id) });
+    say(vaneOnAdd(title, false), { mood: 'idle', unit: 'vane', undo: () => removeTask(id) });
   }
 
   function flip(task: Task) {
@@ -174,6 +174,7 @@ export default function Docket() {
     notify(isDone(task) ? 'warning' : 'success');
     say(isDone(task) ? vaneOnUndo(task.title) : vaneOnDone(task.title, weeklyRate(docket) + 1), {
       mood: isDone(task) ? 'idle' : 'happy',
+      unit: 'vane',
       undo: () => toggleTask(task.id),
     });
   }

@@ -1,6 +1,9 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { BricCore, MOOD_TONE, type CoreState } from '@/components/bric-core';
+import { useBric } from '@/lib/bric-store';
+import { useStore } from '@/lib/store';
 import { color, glyph, mono, radius, space } from '@/theme/tokens';
 import { Bob, Pulse, Scan } from './motion';
 import { Row, Txt } from './primitives';
@@ -115,13 +118,14 @@ export function FieldLabel({ children }: { children: string }) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * The units. Original ASCII constructs, not licensed characters.
+ * The units. Original constructs, not licensed characters.
  *
  * KEVLAR runs one per subsystem, and they must be tellable apart at a glance
  * from across a room:
  *
- *   · BRIC — banking. A square armour plate. Blinks, bobs, has a mouth.
- *   · VANE — the docket. A wide sensor housing. Does not blink; it sweeps.
+ *   · BRIC — banking. A live intelligence, drawn as a HUD reactor of turning
+ *     rings (`bric-core.tsx`). Spins up when he thinks.
+ *   · VANE — the docket. A wide ASCII sensor housing. Does not blink; it sweeps.
  */
 export type Mood = 'idle' | 'happy' | 'warn' | 'alarm' | 'think';
 
@@ -134,20 +138,6 @@ type UnitSpec = {
   ratio: number;
   /** What sits below the eyes: a static bar, or a moving sweep. */
   jaw: 'bar' | 'scan';
-};
-
-const BRIC_SPEC: UnitSpec = {
-  faces: { idle: '● ●', happy: '^ ^', warn: '● ○', alarm: '× ×', think: '· ●' },
-  tones: {
-    idle: color.accent,
-    happy: color.income,
-    warn: color.warn,
-    alarm: color.expense,
-    think: color.transfer,
-  },
-  blink: '– –',
-  ratio: 1,
-  jaw: 'bar',
 };
 
 const VANE_SPEC: UnitSpec = {
@@ -225,8 +215,36 @@ function Unit({ spec, mood, size }: { spec: UnitSpec; mood: Mood; size: number }
   return <Bob distance={2.5} ms={2400}>{body}</Bob>;
 }
 
-export function Bric({ mood = 'idle', size = 54 }: { mood?: Mood; size?: number }) {
-  return <Unit spec={BRIC_SPEC} mood={mood} size={size} />;
+/**
+ * BRIC as he is right now. Every core on screen follows the one neural link,
+ * so the whole terminal visibly thinks while he does. `state` overrides it.
+ */
+export function Bric({
+  mood = 'idle',
+  size = 54,
+  state,
+}: {
+  mood?: Mood;
+  size?: number;
+  state?: CoreState;
+}) {
+  const linked = useStore((s) => !!s.settings.aiKey);
+  const link = useBric((s) => s.link);
+  const live: CoreState = !linked
+    ? 'offline'
+    : link === 'thinking'
+      ? 'thinking'
+      : link === 'speaking'
+        ? 'speaking'
+        : 'idle';
+  const shown = state ?? live;
+  return (
+    <BricCore
+      mood={shown !== 'offline' && link === 'error' && mood === 'idle' ? 'warn' : mood}
+      size={size}
+      state={shown}
+    />
+  );
 }
 
 export function Vane({ mood = 'idle', size = 54 }: { mood?: Mood; size?: number }) {
@@ -234,7 +252,7 @@ export function Vane({ mood = 'idle', size = 54 }: { mood?: Mood; size?: number 
 }
 
 /** Tone a unit is currently showing, for panels that need to match it. */
-export const bricTone = (mood: Mood): string => BRIC_SPEC.tones[mood];
+export const bricTone = (mood: Mood): string => MOOD_TONE[mood];
 export const vaneTone = (mood: Mood): string => VANE_SPEC.tones[mood];
 
 function Says({
@@ -248,13 +266,16 @@ function Says({
   children: ReactNode;
   compact?: boolean;
 }) {
-  const spec = unit === 'bric' ? BRIC_SPEC : VANE_SPEC;
-  const tone = spec.tones[mood];
+  const tone = unit === 'bric' ? MOOD_TONE[mood] : VANE_SPEC.tones[mood];
   const size = compact ? 38 : 50;
 
   return (
     <Row style={{ alignItems: 'flex-start', gap: space.md }}>
-      <Unit spec={spec} mood={mood} size={size} />
+      {unit === 'bric' ? (
+        <Bric mood={mood} size={size + 4} />
+      ) : (
+        <Unit spec={VANE_SPEC} mood={mood} size={size} />
+      )}
       <View style={[s.bubble, { borderColor: `${tone}55` }]}>
         <View style={[s.tail, { borderRightColor: `${tone}55` }]} />
         {typeof children === 'string' ? (

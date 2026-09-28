@@ -4,7 +4,8 @@ import { Pressable, View } from 'react-native';
 
 import { BricSays, FileHeader, LeaderRow, Stamp } from '@/components/ui/agency';
 import { Bar, Button, Card, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
-import { Rise } from '@/components/ui/motion';
+import { Pulse, Rise } from '@/components/ui/motion';
+import { fingerprint, statementPrompt, useRemark } from '@/lib/bric';
 import { formatIn } from '@/lib/currency';
 import { monthLabel, startOfBudgetMonth } from '@/lib/date';
 import { monthHistory, spendByCategoryIn, useData, useStore } from '@/lib/store';
@@ -20,7 +21,7 @@ export default function Statement() {
   const router = useRouter();
   const data = useData();
   const updateSettings = useStore((s) => s.updateSettings);
-  const { currency, monthStartDay, name } = data.settings;
+  const { currency, monthStartDay } = data.settings;
   const money = (c: number) => formatIn(c, currency);
 
   // The month before the one currently running.
@@ -54,19 +55,13 @@ export default function Statement() {
       ? 'surplus'
       : 'deficit';
 
-  const remark = (() => {
-    const who = name || 'sir';
-    if (verdict === 'no activity') {
-      return `Nothing was recorded for ${monthLabel(closedStart)}, ${who}. Either a very quiet month or the ledger went unattended.`;
-    }
-    if (!surplus) {
-      return `${monthLabel(closedStart)} closed ${money(Math.abs(net))} down, ${who}. Not a catastrophe, but it came out of reserves. Worth knowing why before it becomes a pattern.`;
-    }
-    if (rate !== null && rate > 0.2) {
-      return `${monthLabel(closedStart)} closed ${money(net)} ahead — you kept ${Math.round(rate * 100)}% of what came in. A genuinely good month.`;
-    }
-    return `${monthLabel(closedStart)} closed ${money(net)} ahead. Modest, but the right side of zero.`;
-  })();
+  // BRIC's verdict, composed once per closed month and ledger state.
+  const linked = !!data.settings.aiKey;
+  const remark = useRemark(
+    `statement:${closedStart}:${fingerprint(data)}`,
+    verdict === 'no activity' ? null : statementPrompt(data),
+    data
+  );
 
   function acknowledge() {
     updateSettings({ lastStatementFor: closedStart });
@@ -90,9 +85,19 @@ export default function Statement() {
         />
       </Rise>
 
-      <Rise delay={60}>
-        <BricSays mood={surplus ? 'happy' : 'warn'}>{remark}</BricSays>
-      </Rise>
+      {linked && verdict !== 'no activity' && (
+        <Rise delay={60}>
+          <BricSays mood={surplus ? 'happy' : 'warn'}>
+            {remark ?? (
+              <Pulse min={0.3} ms={420}>
+                <Txt variant="micro" weight="bold" spaced tone={color.transfer}>
+                  BRIC IS REVIEWING THE MONTH…
+                </Txt>
+              </Pulse>
+            )}
+          </BricSays>
+        </Rise>
+      )}
 
       <Rise delay={120}>
         <SectionTitle>The figures</SectionTitle>
@@ -173,7 +178,7 @@ export default function Statement() {
       <Rise delay={240}>
         <Button label="Acknowledge" full style={{ marginTop: space.xl }} onPress={acknowledge} />
         <Txt variant="micro" faint style={{ textAlign: 'center', marginTop: space.md }}>
-          FILED ON DEVICE · NOT TRANSMITTED
+          FIGURES COMPUTED ON DEVICE
         </Txt>
       </Rise>
     </Screen>

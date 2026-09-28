@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { Bric, BricSays } from '@/components/ui/agency';
+import { Bric } from '@/components/ui/agency';
 import { Fade, Rise } from '@/components/ui/motion';
 import { Button, Card, Cursor, Row, Screen, Txt } from '@/components/ui/primitives';
 import { CURRENCIES } from '@/lib/currency';
@@ -20,17 +20,17 @@ const BOOT = [
   '',
   'MEMORY CHECK .............. OK',
   'LOCAL STORE ............... OK',
-  'NETWORK INTERFACE ......... NONE',
+  'NETWORK INTERFACE ......... ON REQUEST',
   'ENCRYPTION ................ ON DEVICE',
   '',
   'BNK-001 [BANKING] ......... ONLINE',
-  '  UNIT [BRIC] ............. ONLINE',
+  '  UNIT [BRIC] ............. DORMANT',
   'DKT-002 [DOCKET] .......... ONLINE',
   '  UNIT [VANE] ............. ONLINE',
   'SLOT 003 .................. UNASSIGNED',
   '',
-  'NO REMOTE CONNECTION DETECTED.',
-  'THIS IS INTENTIONAL.',
+  'YOUR DATA STAYS ON THIS DEVICE.',
+  'NOTHING LEAVES WITHOUT YOUR SAY.',
   '',
   'READY.',
 ];
@@ -64,7 +64,7 @@ function Boot({ onDone }: { onDone: () => void }) {
           <Row key={i}>
             <Txt
               variant="caption"
-              tone={l.includes('NONE') || l.includes('INTENTIONAL') ? color.accent : color.textDim}>
+              tone={l.includes('DATA') || l.includes('YOUR SAY') ? color.accent : color.textDim}>
               {l || ' '}
             </Txt>
             {i === lines.length - 1 && !done ? <Cursor /> : null}
@@ -128,10 +128,10 @@ export default function Onboarding() {
       </Rise>
 
       <Rise delay={80}>
-        <BricSays mood="idle" compact>
-          Name so I know what to call you, and roughly what you've got right now. That's the whole
-          setup — no accounts, no logins, nothing to connect.
-        </BricSays>
+        <Txt variant="caption" dim style={{ lineHeight: 19 }}>
+          A name, and roughly what you have right now. That is the whole setup — no accounts, no
+          logins. BRIC can be woken later from Settings.
+        </Txt>
       </Rise>
 
       <Rise delay={160}>

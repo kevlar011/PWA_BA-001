@@ -57,6 +57,10 @@ export default function RootLayout() {
               options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
             />
             <Stack.Screen
+              name="bric"
+              options={{ presentation: 'modal', animation: 'fade_from_bottom' }}
+            />
+            <Stack.Screen
               name="task"
               options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
             />

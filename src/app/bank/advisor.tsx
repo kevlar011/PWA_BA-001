@@ -1,14 +1,18 @@
+import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { BricSays, FileHeader, LeaderRow, Stamp } from '@/components/ui/agency';
-import { Amount, Bar, Button, Card, Empty, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
-import { useSession } from '@/lib/session';
+import { LinkStatus } from '@/components/link-status';
+import { Bric, BricSays, FileHeader, LeaderRow, Stamp } from '@/components/ui/agency';
+import { Fade, Pulse, Rise } from '@/components/ui/motion';
+import { Amount, Bar, Button, Card, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
 import { HAWL_DAYS, hawlCompletesOn, settleZakat } from '@/lib/zakat';
-import { buildInsights, computeMetrics, computeZakat, greeting, type Severity } from '@/lib/advisor';
+import { buildFindings, computeMetrics, computeZakat, type Severity } from '@/lib/advisor';
+import { bricSay, useAdvisory } from '@/lib/bric';
+import { useBric } from '@/lib/bric-store';
 import { formatIn } from '@/lib/currency';
 import { useData, useStore } from '@/lib/store';
-import { color, space } from '@/theme/tokens';
+import { color, glyph, space } from '@/theme/tokens';
 
 const TONE: Record<Severity, string> = {
   good: color.income,
@@ -17,64 +21,102 @@ const TONE: Record<Severity, string> = {
   alarm: color.expense,
 };
 
+/** What the terminal prints while BRIC reads — real counts, not flavour text. */
+function Analysing({ records, budgets, bills }: { records: number; budgets: number; bills: number }) {
+  const lines = [
+    `PARSING ${records} LEDGER RECORDS`,
+    `CROSS-REFERENCING ${budgets} BUDGET CAPS`,
+    `PROJECTING ${bills} STANDING PAYMENTS`,
+    'COMPOSING REPORT',
+  ];
+  return (
+    <Card label="analysis in progress" tint={color.transfer}>
+      <Row style={{ gap: space.lg }}>
+        <Bric mood="think" size={72} state="thinking" />
+        <View style={{ flex: 1 }}>
+          {lines.map((l, i) => (
+            <Fade key={l} delay={i * 450}>
+              <Txt variant="micro" weight="bold" spaced tone={i === lines.length - 1 ? color.transfer : color.textDim}>
+                {`${glyph.arrow} ${l}`}
+              </Txt>
+            </Fade>
+          ))}
+        </View>
+      </Row>
+    </Card>
+  );
+}
+
 export default function Advisor() {
+  const router = useRouter();
   const data = useData();
   const updateSettings = useStore((s) => s.updateSettings);
-  const say = useSession((s) => s.say);
   const { currency } = data.settings;
 
   const now = Date.now();
-  const insights = useMemo(() => buildInsights(data, now), [data, now]);
   const m = useMemo(() => computeMetrics(data, now), [data, now]);
   const zakat = useMemo(() => computeZakat(data), [data]);
+  const telemetry = useMemo(() => buildFindings(data), [data]);
+  const { advisory, fresh, linked, refresh } = useAdvisory(data);
+  const faulted = useBric((s) => s.link === 'error');
 
   const money = (c: number) => formatIn(c, currency);
-  const worstMood = insights[0]?.mood ?? 'idle';
-
-  const counts = insights.reduce(
-    (acc, i) => ({ ...acc, [i.severity]: (acc[i.severity] ?? 0) + 1 }),
-    {} as Record<Severity, number>
-  );
-
-  /* Only mention buckets that actually have something in them — listing
-     "0 urgent, 0 to watch" next to a real finding just reads as broken. */
-  const breakdown = (
-    [
-      ['urgent', counts.alarm],
-      ['to watch', counts.warn],
-      ['to note', counts.info],
-      ['going well', counts.good],
-    ] as const
-  )
-    .filter(([, n]) => n > 0)
-    .map(([label, n]) => `${n} ${label}`)
-    .join(', ');
+  const worst = advisory?.findings[0]?.severity ?? telemetry[0]?.severity ?? 'good';
+  const mood = worst === 'alarm' ? 'alarm' : worst === 'warn' ? 'warn' : worst === 'info' ? 'think' : 'happy';
 
   return (
     <Screen>
       <FileHeader
         title="Advisory"
         code="K-04 / ANALYSIS"
-        subtitle="COMPUTED LOCALLY · NO DATA TRANSMITTED"
+        subtitle={linked ? 'WRITTEN BY BRIC FROM FIGURES COMPUTED ON THIS DEVICE' : 'RAW TELEMETRY · BRIC OFFLINE'}
       />
 
-      <BricSays mood={worstMood}>
-        {insights.length === 0
-          ? greeting(data, 0)
-          : `${greeting(data, insights.length)} ${breakdown}.`}
-      </BricSays>
+      <Rise>
+        {!linked ? (
+          <Card tint={color.border}>
+            <Row style={{ gap: space.md }}>
+              <Bric size={52} />
+              <View style={{ flex: 1 }}>
+                <LinkStatus />
+                <Txt variant="micro" faint style={{ marginTop: 4, lineHeight: 16 }}>
+                  Without a link, this is the device's raw analysis. Link BRIC and he writes it up
+                  properly.
+                </Txt>
+              </View>
+            </Row>
+            <Button label="Link BRIC" kind="ghost" full style={{ marginTop: space.md }} onPress={() => router.push('/settings')} />
+          </Card>
+        ) : advisory ? (
+          <BricSays mood={mood}>{advisory.opening}</BricSays>
+        ) : faulted ? (
+          <Card tint={color.expense}>
+            <Row style={{ gap: space.md }}>
+              <Bric size={52} mood="warn" />
+              <View style={{ flex: 1 }}>
+                <LinkStatus />
+                <Txt variant="micro" faint style={{ marginTop: 4, lineHeight: 16 }}>
+                  BRIC could not complete the analysis. Raw telemetry below.
+                </Txt>
+              </View>
+            </Row>
+            <Button label="Retry" kind="ghost" full style={{ marginTop: space.md }} onPress={() => void refresh()} />
+          </Card>
+        ) : (
+          <Analysing
+            records={data.transactions.length}
+            budgets={data.budgets.length}
+            bills={data.recurring.length}
+          />
+        )}
+      </Rise>
 
       {/* Vitals */}
       <SectionTitle>Vitals</SectionTitle>
       <Card label="this month">
         <LeaderRow label="Income" value={money(m.income)} tone={color.income} />
         <LeaderRow label="Spent" value={money(m.expense)} tone={color.expense} />
-        <LeaderRow
-          label="Net"
-          value={money(m.net)}
-          tone={m.net >= 0 ? color.income : color.expense}
-          bold
-        />
+        <LeaderRow label="Net" value={money(m.net)} tone={m.net >= 0 ? color.income : color.expense} bold />
         <Rule />
         <LeaderRow
           label="Savings rate"
@@ -113,13 +155,7 @@ export default function Advisor() {
             </Txt>
             <Bar
               pct={m.emergencyMonths / 3}
-              tint={
-                m.emergencyMonths < 1
-                  ? color.expense
-                  : m.emergencyMonths < 3
-                    ? color.warn
-                    : color.income
-              }
+              tint={m.emergencyMonths < 1 ? color.expense : m.emergencyMonths < 3 ? color.warn : color.income}
             />
           </View>
         )}
@@ -181,7 +217,7 @@ export default function Advisor() {
                 style={{ marginTop: space.md }}
                 onPress={() => {
                   updateSettings(settleZakat(data));
-                  say('Recorded. The next year begins from today, sir.', { mood: 'happy' });
+                  bricSay('ZAKAT SETTLED · NEW HAWL BEGINS', { type: 'zakat-paid' }, { mood: 'happy' });
                 }}
               />
             )}
@@ -196,40 +232,101 @@ export default function Advisor() {
       )}
 
       {/* Findings */}
-      <SectionTitle>Findings</SectionTitle>
-
-      {insights.length === 0 ? (
-        <Empty icon="✓" title="All clear" body="Nothing needs your attention this month." />
-      ) : (
-        insights.map((i) => (
-          <Card key={i.id} tint={`${TONE[i.severity]}55`} style={{ marginBottom: space.md }}>
-            <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <View style={{ flex: 1, marginRight: space.md }}>
-                <Stamp text={i.tag} tone={TONE[i.severity]} angle={-3} />
-                <Txt variant="body" weight="bold" style={{ marginTop: space.md }}>
-                  {i.title}
+      <SectionTitle
+        action={
+          linked && advisory ? (
+            fresh || faulted ? (
+              <Pressable hitSlop={8} onPress={() => void refresh()}>
+                <Txt variant="micro" weight="bold" spaced tone={color.accent}>
+                  RE-RUN
                 </Txt>
+              </Pressable>
+            ) : (
+              <Pulse min={0.3} ms={500}>
+                <Txt variant="micro" weight="bold" spaced tone={color.transfer}>
+                  RECALIBRATING
+                </Txt>
+              </Pulse>
+            )
+          ) : undefined
+        }>
+        Findings
+      </SectionTitle>
+
+      {advisory
+        ? advisory.findings.map((f, i) => (
+            <Rise key={f.id} delay={Math.min(i * 60, 300)}>
+              <Card tint={`${TONE[f.severity]}55`} style={{ marginBottom: space.md }}>
+                <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1, marginRight: space.md }}>
+                    <Stamp text={f.tag} tone={TONE[f.severity]} angle={-3} />
+                    <Txt variant="body" weight="bold" style={{ marginTop: space.md }}>
+                      {f.title}
+                    </Txt>
+                  </View>
+                  {f.metric ? (
+                    <Amount variant="title" tone={TONE[f.severity]}>
+                      {f.metric}
+                    </Amount>
+                  ) : null}
+                </Row>
+                <Txt variant="caption" dim style={{ marginTop: space.md, lineHeight: 19 }}>
+                  {f.body}
+                </Txt>
+              </Card>
+            </Rise>
+          ))
+        : telemetry.map((f, i) => (
+            <Rise key={f.id} delay={Math.min(i * 40, 240)}>
+              <View style={[s.tele, { borderLeftColor: TONE[f.severity] }]}>
+                <View style={{ flex: 1 }}>
+                  <Txt variant="micro" weight="bold" spaced tone={TONE[f.severity]}>
+                    {f.tag.toUpperCase()}
+                  </Txt>
+                  <Txt variant="caption" style={{ marginTop: 2, lineHeight: 18 }}>
+                    {f.readout}
+                  </Txt>
+                </View>
+                {f.metric ? (
+                  <Amount variant="lead" tone={TONE[f.severity]}>
+                    {f.metric}
+                  </Amount>
+                ) : null}
               </View>
-              {i.metric ? (
-                <Amount variant="title" tone={TONE[i.severity]}>
-                  {i.metric}
-                </Amount>
-              ) : null}
-            </Row>
-            <Txt variant="caption" dim style={{ marginTop: space.md, lineHeight: 19 }}>
-              {i.body}
-            </Txt>
-          </Card>
-        ))
+            </Rise>
+          ))}
+
+      {linked && (
+        <Button
+          label="Discuss with BRIC"
+          kind="ghost"
+          full
+          style={{ marginTop: space.md }}
+          onPress={() => router.push('/bric')}
+        />
       )}
 
       <Card style={{ marginTop: space.lg }} tint={color.border}>
         <Txt variant="micro" faint style={{ lineHeight: 16 }}>
-          KEVLAR runs this analysis on your device using your own numbers. It is not a licensed
-          financial adviser and will not recommend specific investments. Religious rulings are
-          summarised for orientation only — take them to a qualified scholar.
+          The figures are computed on your device. When BRIC is linked, a summary of them is sent to
+          DeepSeek so he can write this up. He is not a licensed financial adviser and will not
+          recommend specific investments. Religious rulings are summarised for orientation only —
+          take them to a qualified scholar.
         </Txt>
       </Card>
     </Screen>
   );
 }
+
+const s = StyleSheet.create({
+  tele: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    backgroundColor: color.surface,
+    borderLeftWidth: 3,
+    paddingVertical: space.md,
+    paddingHorizontal: space.md,
+    marginBottom: space.sm,
+  },
+});

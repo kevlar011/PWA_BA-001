@@ -16,7 +16,7 @@
 
 import { DAY } from './date';
 import { completedSince, dueWithin, isDone, openTasks, overdueTasks } from './store';
-import type { BriefItem, Briefing, BriefTone } from './bric';
+import type { BriefItem, Briefing, BriefTone } from './brief';
 import type { Mood } from '@/components/ui/agency';
 import type { DocketData, Task } from './types';
 

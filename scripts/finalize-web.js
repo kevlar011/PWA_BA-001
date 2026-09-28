@@ -28,7 +28,7 @@ const HEAD = `
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0B0A07" />
     <meta name="color-scheme" content="dark" />
-    <meta name="description" content="Personal finance terminal. Local only." />
+    <meta name="description" content="Personal mainframe. Banking and docket, on your device." />
     <link rel="apple-touch-icon" href="./icon-180.png" />
     <link rel="manifest" href="./manifest.json" />
     <style id="kevlar-shell">

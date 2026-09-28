@@ -16,12 +16,24 @@ export type Toast = {
   mood: Mood;
   /** Present only when the action can actually be reversed. */
   undo?: () => void;
+  /**
+   * BRIC is still composing. The text meanwhile is the system receipt, which
+   * his remark replaces once it arrives.
+   */
+  pending?: boolean;
+  /** Who is speaking. Docket remarks are VANE's, and she should get the credit. */
+  unit: 'bric' | 'vane';
 };
 
 type Session = {
   toast: Toast | null;
-  /** BRIC says something. `undo` makes it reversible. */
-  say: (text: string, opts?: { mood?: Mood; undo?: () => void }) => void;
+  /** Shows a remark. `undo` makes it reversible. Returns its id for `amend`. */
+  say: (
+    text: string,
+    opts?: { mood?: Mood; undo?: () => void; pending?: boolean; unit?: 'bric' | 'vane' }
+  ) => number;
+  /** Replaces a pending remark's text, if it is still the one on screen. */
+  amend: (id: number, text: string | null) => void;
   dismiss: () => void;
 
   updateReady: boolean;
@@ -51,10 +63,26 @@ let counter = 0;
 
 export const useSession = create<Session>()((set) => ({
   toast: null,
-  say: (text, opts = {}) =>
+  say: (text, opts = {}) => {
+    const id = ++counter;
     set({
-      toast: { id: ++counter, text, mood: opts.mood ?? 'idle', undo: opts.undo },
-    }),
+      toast: {
+        id,
+        text,
+        mood: opts.mood ?? 'idle',
+        undo: opts.undo,
+        pending: opts.pending,
+        unit: opts.unit ?? 'bric',
+      },
+    });
+    return id;
+  },
+  amend: (id, text) =>
+    set((s) =>
+      s.toast?.id === id
+        ? { toast: { ...s.toast, text: text ?? s.toast.text, pending: false } }
+        : {}
+    ),
   dismiss: () => set({ toast: null }),
 
   updateReady: false,
