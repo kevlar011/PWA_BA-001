@@ -24,6 +24,7 @@ export default function Log() {
   const router = useRouter();
   const data = useData();
   const removeTransaction = useStore((s) => s.removeTransaction);
+  const undeleteTransaction = useStore((s) => s.undeleteTransaction);
   const say = useSession((s) => s.say);
   const { currency } = data.settings;
 
@@ -138,15 +139,8 @@ export default function Log() {
                       key={t.id}
                       onPress={() => router.push({ pathname: '/add', params: { id: t.id } })}
                       onLongPress={() => {
-                        const before = { ...t };
                         removeTransaction(t.id);
-                        say('Deleted.', {
-                          mood: 'warn',
-                          undo: () =>
-                            useStore.setState((st) => ({
-                              transactions: [before, ...st.transactions],
-                            })),
-                        });
+                        say('Deleted.', { mood: 'warn', undo: () => undeleteTransaction(t.id) });
                       }}
                       style={({ pressed }) => [
                         s.row,

@@ -77,7 +77,8 @@ export function computeZakat(data: KevlarData): ZakatState {
   return {
     base,
     nisab,
-    due: payable ? Math.round(base * ZAKAT_RATE) : Math.round(base * ZAKAT_RATE),
+    // Shown ahead of time as "would be due", so it is filled in either way.
+    due: Math.round(base * ZAKAT_RATE),
     aboveNisab,
     hawlStartedAt: started,
     daysRemaining,

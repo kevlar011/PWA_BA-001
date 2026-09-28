@@ -47,6 +47,7 @@ export default function NoteEditor() {
   const addTask = useStore((s) => s.addTask);
   const updateTask = useStore((s) => s.updateTask);
   const removeTask = useStore((s) => s.removeTask);
+  const undeleteTask = useStore((s) => s.undeleteTask);
   const say = useSession((s) => s.say);
 
   const editing = docket.tasks.find((t) => t.id === params.id);
@@ -119,13 +120,10 @@ export default function NoteEditor() {
             <Pressable
               hitSlop={14}
               onPress={() => {
-                const before = { ...editing };
-                removeTask(editing.id);
+                const id = editing.id;
+                removeTask(id);
                 notify('warning');
-                say('Removed from the docket.', {
-                  mood: 'warn',
-                  undo: () => useStore.setState((st) => ({ tasks: [before, ...st.tasks] })),
-                });
+                say('Removed from the docket.', { mood: 'warn', undo: () => undeleteTask(id) });
                 router.back();
               }}>
               <Txt variant="caption" weight="bold" tone={color.danger}>

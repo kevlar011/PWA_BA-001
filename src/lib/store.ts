@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { swatch } from '@/theme/tokens';
-import { addMonths, advance, endOfBudgetMonth, startOfBudgetMonth } from './date';
+import { advance, endOfBudgetMonth, startOfBudgetMonth } from './date';
 import { alive } from './merge';
 import type {
   Budget,
@@ -86,6 +86,8 @@ type Actions = {
   addTransaction: (t: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updateTransaction: (id: string, patch: Partial<Transaction>) => void;
   removeTransaction: (id: string) => void;
+  /** Clears a tombstone, so an undone delete propagates like any other edit. */
+  undeleteTransaction: (id: string) => void;
 
   addCategory: (c: Omit<Category, 'id' | 'archived' | 'updatedAt'>) => string;
   removeCategory: (id: string) => void;
@@ -105,6 +107,7 @@ type Actions = {
   addTask: (t: Partial<Task> & { title: string }) => string;
   updateTask: (id: string, patch: Partial<Task>) => void;
   removeTask: (id: string) => void;
+  undeleteTask: (id: string) => void;
   /** Flips done/undone and keeps `completedAt` honest. */
   toggleTask: (id: string) => void;
 
@@ -143,6 +146,12 @@ export const useStore = create<KevlarStore>()(
         set((s) => ({
           transactions: s.transactions.map((t) =>
             t.id === id ? { ...t, deletedAt: Date.now(), updatedAt: Date.now() } : t
+          ),
+        })),
+      undeleteTransaction: (id) =>
+        set((s) => ({
+          transactions: s.transactions.map((t) =>
+            t.id === id ? { ...t, deletedAt: undefined, updatedAt: Date.now() } : t
           ),
         })),
 
@@ -250,6 +259,12 @@ export const useStore = create<KevlarStore>()(
         set((s) => ({
           tasks: s.tasks.map((t) =>
             t.id === id ? { ...t, deletedAt: Date.now(), updatedAt: Date.now() } : t
+          ),
+        })),
+      undeleteTask: (id) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === id ? { ...t, deletedAt: undefined, updatedAt: Date.now() } : t
           ),
         })),
       toggleTask: (id) =>
@@ -475,10 +490,17 @@ export function monthHistory(data: KevlarData, count = 6, at = Date.now()): Mont
   const { monthStartDay } = data.settings;
   const out: MonthSlice[] = [];
 
+  // Anchor on the start of the current budget month rather than on `at`:
+  // stepping back from the 31st lands in the wrong month whenever the target
+  // month is shorter (31 Mar − 1 month = 3 Mar), skipping February entirely.
+  const current = new Date(startOfBudgetMonth(at, monthStartDay));
+
   for (let i = count - 1; i >= 0; i--) {
-    // Step back through months by landing mid-month, which avoids the
-    // short-month rollover bug you get from subtracting fixed day counts.
-    const probe = addMonths(at, -i);
+    const probe = new Date(
+      current.getFullYear(),
+      current.getMonth() - i,
+      Math.min(monthStartDay, 28)
+    ).getTime();
     const start = startOfBudgetMonth(probe, monthStartDay);
     const end = endOfBudgetMonth(probe, monthStartDay);
 
@@ -561,13 +583,5 @@ export function spendByCategoryIn(data: KevlarData, at: number): Map<string, num
 
 /** Total spent per category within the current budget month. */
 export function spendByCategory(data: KevlarData, at = Date.now()): Map<string, number> {
-  const start = startOfBudgetMonth(at, data.settings.monthStartDay);
-  const end = endOfBudgetMonth(at, data.settings.monthStartDay);
-  const out = new Map<string, number>();
-  for (const t of data.transactions) {
-    if (t.kind !== 'expense' || !t.categoryId) continue;
-    if (t.date < start || t.date > end) continue;
-    out.set(t.categoryId, (out.get(t.categoryId) ?? 0) + t.amount);
-  }
-  return out;
+  return spendByCategoryIn(data, at);
 }

@@ -136,6 +136,7 @@ function signature(): string {
     newest(s.goals),
     newest(s.recurring),
     newest(s.tasks),
+    newest(s.categories),
     s.settings.settingsUpdatedAt ?? 0,
   ].join(':');
 }

@@ -24,6 +24,7 @@ export default function AddTransaction() {
   const addTransaction = useStore((s) => s.addTransaction);
   const updateTransaction = useStore((s) => s.updateTransaction);
   const removeTransaction = useStore((s) => s.removeTransaction);
+  const undeleteTransaction = useStore((s) => s.undeleteTransaction);
   const say = useSession((s) => s.say);
   const { currency, name } = data.settings;
 
@@ -95,14 +96,10 @@ export default function AddTransaction() {
             <Pressable
               hitSlop={14}
               onPress={() => {
-                const before = { ...editing };
-                removeTransaction(editing.id);
+                const id = editing.id;
+                removeTransaction(id);
                 notify('warning');
-                say('Deleted.', {
-                  mood: 'warn',
-                  undo: () =>
-                    useStore.setState((st) => ({ transactions: [before, ...st.transactions] })),
-                });
+                say('Deleted.', { mood: 'warn', undo: () => undeleteTransaction(id) });
                 router.back();
               }}>
               <Txt variant="caption" weight="bold" tone={color.danger}>
