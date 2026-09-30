@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FieldLabel } from '@/components/ui/agency';
 import { notify } from '@/components/ui/press';
 import { Button, Row, Rule, Txt } from '@/components/ui/primitives';
-import { DAY, shortDate, startOfDay } from '@/lib/date';
+import { DAY, dueLabel, shortDate, startOfDay } from '@/lib/date';
 import { useSession } from '@/lib/session';
 import { useDocket, useStore } from '@/lib/store';
 import { vaneOnAdd, vaneOnDone, weeklyRate } from '@/lib/vane';
@@ -145,6 +145,8 @@ export default function NoteEditor() {
         </Row>
       </Row>
 
+      <View style={{ height: 2, backgroundColor: subsystem.desk, marginBottom: space.md, opacity: 0.7 }} />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -254,9 +256,17 @@ export default function NoteEditor() {
                 ◂ DAY
               </Txt>
             </Pressable>
-            <Txt variant="caption" weight="bold" tone={subsystem.desk}>
-              {shortDate(due).toUpperCase()}
-            </Txt>
+            <View style={{ alignItems: 'center', minWidth: 96 }}>
+              <Txt variant="caption" weight="bold" tone={subsystem.desk}>
+                {shortDate(due).toUpperCase()}
+              </Txt>
+              <Txt
+                variant="micro"
+                weight="bold"
+                tone={due < startOfDay(Date.now()) ? color.expense : due - Date.now() <= 3 * DAY ? color.warn : color.textFaint}>
+                {dueLabel(due).toUpperCase()}
+              </Txt>
+            </View>
             <Pressable onPress={() => setDue((d) => (d ?? 0) + DAY)} style={s.day}>
               <Txt variant="micro" weight="bold" tone={color.textDim}>
                 DAY ▸

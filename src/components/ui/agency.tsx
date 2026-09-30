@@ -1,11 +1,12 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BricCore, MOOD_TONE, type CoreState } from '@/components/bric-core';
 import { useBric } from '@/lib/bric-store';
 import { useStore } from '@/lib/store';
-import { color, glyph, mono, radius, space } from '@/theme/tokens';
-import { Bob, Pulse, Scan } from './motion';
+import { VANE_TONE, VaneScope } from '@/components/vane-scope';
+import { scopeBlips, type Blip } from '@/lib/vane';
+import { color, glyph, radius, space } from '@/theme/tokens';
 import { Row, Txt } from './primitives';
 
 /* -------------------------------------------------------------------------- */
@@ -125,95 +126,10 @@ export function FieldLabel({ children }: { children: string }) {
  *
  *   · BRIC — banking. A live intelligence, drawn as a HUD reactor of turning
  *     rings (`bric-core.tsx`). Spins up when he thinks.
- *   · VANE — the docket. A wide ASCII sensor housing. Does not blink; it sweeps.
+ *   · VANE — the docket. A half-dome sonar (`vane-scope.tsx`) whose blips are
+ *     the board's real deadlines. Rules only; she never calls out.
  */
 export type Mood = 'idle' | 'happy' | 'warn' | 'alarm' | 'think';
-
-type UnitSpec = {
-  faces: Record<Mood, string>;
-  tones: Record<Mood, string>;
-  /** Shown for a beat when the unit blinks. Absent means it never does. */
-  blink?: string;
-  /** Width as a multiple of height. Silhouette does most of the identifying. */
-  ratio: number;
-  /** What sits below the eyes: a static bar, or a moving sweep. */
-  jaw: 'bar' | 'scan';
-};
-
-const VANE_SPEC: UnitSpec = {
-  // Chevrons rather than dots: BRIC watches you, VANE watches the horizon.
-  faces: { idle: '▸ ◂', happy: '▴ ▴', warn: '▾ ▾', alarm: '▮ ▮', think: '· ▸' },
-  tones: {
-    idle: color.transfer,
-    happy: color.income,
-    warn: color.warn,
-    alarm: color.expense,
-    think: color.bone,
-  },
-  ratio: 1.25,
-  jaw: 'scan',
-};
-
-function Unit({ spec, mood, size }: { spec: UnitSpec; mood: Mood; size: number }) {
-  const tone = spec.tones[mood];
-  const [blinking, setBlinking] = useState(false);
-  const width = size * spec.ratio;
-
-  // Irregular blinks read as alive; a fixed interval reads as a loading spinner.
-  useEffect(() => {
-    if (!spec.blink) return;
-    let timeout: ReturnType<typeof setTimeout>;
-    const schedule = () => {
-      timeout = setTimeout(
-        () => {
-          setBlinking(true);
-          setTimeout(() => {
-            setBlinking(false);
-            schedule();
-          }, 120);
-        },
-        2200 + Math.random() * 2600
-      );
-    };
-    schedule();
-    return () => clearTimeout(timeout);
-  }, [spec.blink]);
-
-  const body = (
-    <View
-      style={[
-        s.unit,
-        { width, height: size, borderColor: tone, backgroundColor: `${tone}14` },
-      ]}>
-      <Txt
-        style={{
-          fontFamily: mono,
-          fontSize: size * 0.26,
-          color: tone,
-          letterSpacing: -1,
-        }}>
-        {blinking && spec.blink ? spec.blink : spec.faces[mood]}
-      </Txt>
-      {spec.jaw === 'scan' ? (
-        // Frozen mid-sweep when something is wrong: a unit that is alarmed is
-        // not still calmly scanning the horizon.
-        mood === 'alarm' ? (
-          <View style={{ width: width * 0.55, height: 2, backgroundColor: tone }} />
-        ) : (
-          <Scan width={width * 0.55} tone={tone} ms={mood === 'think' ? 900 : 1700} />
-        )
-      ) : (
-        <View
-          style={[s.jawBar, { backgroundColor: tone, width: size * (mood === 'happy' ? 0.42 : 0.32) }]}
-        />
-      )}
-    </View>
-  );
-
-  // Alarm jitters instead of bobbing — it shouldn't look relaxed.
-  if (mood === 'alarm') return <Pulse min={0.55} ms={620}>{body}</Pulse>;
-  return <Bob distance={2.5} ms={2400}>{body}</Bob>;
-}
 
 /**
  * BRIC as he is right now. Every core on screen follows the one neural link,
@@ -247,13 +163,23 @@ export function Bric({
   );
 }
 
-export function Vane({ mood = 'idle', size = 54 }: { mood?: Mood; size?: number }) {
-  return <Unit spec={VANE_SPEC} mood={mood} size={size} />;
+/**
+ * VANE as the board stands. Without `blips` she reads the docket herself, so
+ * every scope on screen shows the same returns.
+ */
+export function Vane({ mood = 'idle', size = 54, blips }: { mood?: Mood; size?: number; blips?: Blip[] }) {
+  const tasks = useStore((s) => s.tasks);
+  const settings = useStore((s) => s.settings);
+  const live = useMemo(
+    () => (blips ? null : scopeBlips({ tasks: tasks.filter((t) => !t.deletedAt), settings })),
+    [blips, tasks, settings]
+  );
+  return <VaneScope mood={mood} size={size} blips={blips ?? live ?? []} />;
 }
 
 /** Tone a unit is currently showing, for panels that need to match it. */
 export const bricTone = (mood: Mood): string => MOOD_TONE[mood];
-export const vaneTone = (mood: Mood): string => VANE_SPEC.tones[mood];
+export const vaneTone = (mood: Mood): string => VANE_TONE[mood];
 
 function Says({
   unit,
@@ -266,7 +192,7 @@ function Says({
   children: ReactNode;
   compact?: boolean;
 }) {
-  const tone = unit === 'bric' ? MOOD_TONE[mood] : VANE_SPEC.tones[mood];
+  const tone = unit === 'bric' ? MOOD_TONE[mood] : VANE_TONE[mood];
   const size = compact ? 38 : 50;
 
   return (
@@ -274,7 +200,7 @@ function Says({
       {unit === 'bric' ? (
         <Bric mood={mood} size={size + 4} />
       ) : (
-        <Unit spec={VANE_SPEC} mood={mood} size={size} />
+        <Vane mood={mood} size={size - 12} />
       )}
       <View style={[s.bubble, { borderColor: `${tone}55` }]}>
         <View style={[s.tail, { borderRightColor: `${tone}55` }]} />
@@ -313,14 +239,6 @@ const s = StyleSheet.create({
     alignSelf: 'flex-start',
     opacity: 0.9,
   },
-  unit: {
-    borderWidth: 2,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  jawBar: { height: 2, opacity: 0.8 },
   bubble: {
     flex: 1,
     borderWidth: 1,

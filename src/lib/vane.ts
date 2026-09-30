@@ -367,6 +367,100 @@ export function streak(d: DocketData, at = Date.now()): number {
   return n;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Scope                                                                      */
+/* -------------------------------------------------------------------------- */
+
+/** How far ahead the scope and the deadline strip look. */
+export const HORIZON_DAYS = 14;
+
+export type BlipLevel = 'late' | 'soon' | 'later';
+
+/** One dated entry as it appears on VANE's sonar. */
+export type Blip = {
+  id: string;
+  level: BlipLevel;
+  /** Degrees from straight up, −75 (left) to 75 (right). */
+  angle: number;
+  /** 0 at the emitter, 1 at the rim. Nearer means sooner. */
+  distance: number;
+};
+
+/** Stable spread across the dome, so a blip does not jump between renders. */
+const bearing = (id: string): number => {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 0x01000193);
+  // Final mix, so ids differing only in their last character still scatter.
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x2c1b3c6d);
+  h ^= h >>> 12;
+  return ((h >>> 0) % 150) - 75;
+};
+
+export const blipLevel = (due: number, at = Date.now()): BlipLevel =>
+  due < at ? 'late' : due - at <= 3 * DAY ? 'soon' : 'later';
+
+/**
+ * The board, as sonar returns: every open entry due inside the horizon, placed
+ * by how soon it lands. Overdue entries crowd the emitter, where they belong.
+ */
+export function scopeBlips(d: DocketData, at = Date.now()): Blip[] {
+  const limit = at + HORIZON_DAYS * DAY;
+  return openTasks(d)
+    .filter((t) => t.due !== undefined && t.due <= limit)
+    .sort((a, b) => (a.due ?? 0) - (b.due ?? 0))
+    .slice(0, 16)
+    .map((t) => {
+      const due = t.due as number;
+      const level = blipLevel(due, at);
+      return {
+        id: t.id,
+        level,
+        angle: bearing(t.id),
+        distance: level === 'late' ? 0.14 : 0.24 + 0.72 * Math.min(1, (due - at) / (HORIZON_DAYS * DAY)),
+      };
+    });
+}
+
+export type StripDay = {
+  /** Start of the day, or 0 for the overdue bucket. */
+  day: number;
+  tasks: Task[];
+};
+
+/** Overdue first, then each of the next fourteen days, for the deadline strip. */
+export function deadlineStrip(d: DocketData, at = Date.now()): { late: Task[]; days: StripDay[] } {
+  const today = new Date(at);
+  today.setHours(0, 0, 0, 0);
+  const start = today.getTime();
+
+  const open = openTasks(d).filter((t) => t.due !== undefined);
+  const days: StripDay[] = Array.from({ length: HORIZON_DAYS }, (_, i) => {
+    const day = new Date(start);
+    day.setDate(day.getDate() + i);
+    const from = day.getTime();
+    const to = new Date(from);
+    to.setDate(to.getDate() + 1);
+    return {
+      day: from,
+      tasks: open.filter((t) => (t.due as number) >= Math.max(from, at) && (t.due as number) < to.getTime()),
+    };
+  });
+  // Something due earlier today but already past counts as late, not today.
+  return { late: overdueTasks(d, at), days };
+}
+
+/** One line of machine state, the way a scanner labels its sweep. */
+export function scanReadout(d: DocketData, at = Date.now()): { text: string; level: BlipLevel | 'clear' } {
+  const open = openTasks(d);
+  const late = overdueTasks(d, at);
+  const soon = dueWithin(d, 72, at);
+  if (late.length > 0) return { text: `CONTACT · ${late.length} OVERDUE`, level: 'late' };
+  if (open.length === 0) return { text: 'SWEEP CLEAR · NOTHING ON THE BOARD', level: 'clear' };
+  if (soon.length > 0) return { text: `SCANNING · ${open.length} OPEN · ${soon.length} CLOSING`, level: 'soon' };
+  return { text: `SCANNING · ${open.length} OPEN`, level: 'later' };
+}
+
 /** Tasks closed in the last seven days, for VANE's reaction when one lands. */
 export const weeklyRate = (d: DocketData, at = Date.now()): number =>
   completedSince(d, at - 7 * DAY).length;

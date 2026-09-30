@@ -5,7 +5,8 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Vane } from '@/components/ui/agency';
 import { Rise, useTypewriter } from '@/components/ui/motion';
 import { notify, Tap } from '@/components/ui/press';
-import { Card, Empty, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
+import { ScanStatus } from '@/components/scan-status';
+import { Card, Cursor, Empty, Row, Rule, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
 import { DAY, dueLabel } from '@/lib/date';
 import { useSession } from '@/lib/session';
 import { isDone, openTasks, sortTasks, taskProgress, useDocket, useStore } from '@/lib/store';
@@ -183,12 +184,16 @@ export default function Docket() {
     <View style={{ flex: 1 }}>
       <Screen>
         <Rise>
-          <Card label="vane" tint={TONE[brief.items[0]?.tone ?? 'good']}>
+          <Card label="vane · scanner" tint={TONE[brief.items[0]?.tone ?? 'good']}>
             <Row style={{ gap: space.md, alignItems: 'flex-start' }}>
-              <Vane mood={brief.mood} size={46} />
+              <Tap scale={0.94} weight="medium" onPress={() => router.navigate('/desk/brief')}>
+                <Vane mood={brief.mood} size={60} />
+              </Tap>
               <View style={{ flex: 1 }}>
-                <Txt variant="caption" style={{ lineHeight: 19, minHeight: 38 }}>
+                <ScanStatus docket={docket} />
+                <Txt variant="caption" style={{ lineHeight: 19, minHeight: 38, marginTop: 4 }}>
                   {greeting}
+                  {greeting.length < brief.greeting.length ? <Cursor tone={subsystem.desk} /> : null}
                 </Txt>
               </View>
             </Row>
