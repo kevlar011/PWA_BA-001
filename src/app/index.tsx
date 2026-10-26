@@ -20,7 +20,7 @@ const boot = (linked: boolean) => [
 /**
  * Cold-start sequence, then straight to the ledger.
  *
- * Pure theatre, and kept short enough to stay charming — it runs once per
+ * Pure theatre, and kept short enough to stay charming, it runs once per
  * launch, so anything that routes back to `/` lands on banking without
  * sitting through it again.
  */

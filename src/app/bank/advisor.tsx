@@ -23,7 +23,7 @@ const TONE: Record<Severity, string> = {
   alarm: color.expense,
 };
 
-/** What the terminal prints while BRIC reads — real counts, not flavour text. */
+/** What the terminal prints while BRIC reads. The counts are real. */
 function Analysing({ records, budgets, bills }: { records: number; budgets: number; bills: number }) {
   const lines = [
     `PARSING ${records} LEDGER RECORDS`,
@@ -85,8 +85,8 @@ export default function Advisor() {
               <View style={{ flex: 1 }}>
                 <LinkStatus />
                 <Txt variant="micro" faint style={{ marginTop: 4, lineHeight: 16 }}>
-                  Without a link, this is the device's raw analysis. Link BRIC and he writes it up
-                  properly.
+                  BRIC isn't linked, so you're seeing the raw numbers. Link him in Settings and
+                  he'll write this up for you.
                 </Txt>
               </View>
             </Row>
@@ -101,7 +101,7 @@ export default function Advisor() {
               <View style={{ flex: 1 }}>
                 <LinkStatus />
                 <Txt variant="micro" faint style={{ marginTop: 4, lineHeight: 16 }}>
-                  BRIC could not complete the analysis. Raw telemetry below.
+                  BRIC couldn't finish the write-up. The raw numbers are below.
                 </Txt>
               </View>
             </Row>
@@ -228,9 +228,9 @@ export default function Advisor() {
             )}
 
             <Txt variant="micro" faint style={{ marginTop: space.md, lineHeight: 16 }}>
-              Estimate based on logged balances only. Excludes gold, property, business assets and
-              debts owed. The hawl resets if your wealth falls below the nisab. Confirm with a
-              scholar.
+              This is an estimate from the balances you've logged. It doesn't count gold, property,
+              business assets or debts. If your wealth drops below the nisab, the hawl starts
+              over. Check with a scholar before you pay.
             </Txt>
           </Card>
         </>
@@ -243,8 +243,9 @@ export default function Advisor() {
           <LeaderRow label="Untracked repeats" value="NONE" tone={color.income} />
           <LeaderRow label="Creeping categories" value="NONE" tone={color.income} />
           <Txt variant="micro" faint style={{ marginTop: space.sm, lineHeight: 16 }}>
-            Scans for charges that recur like a subscription but are not on your bills list, and
-            categories running well above their usual month. Notes on entries sharpen it.
+            Looks for charges that keep coming back like a subscription but aren't on your bills
+            list, and for categories running well above their usual month. Adding notes to your
+            entries helps it.
           </Txt>
         </Card>
       ) : (
@@ -380,10 +381,10 @@ export default function Advisor() {
 
       <Card style={{ marginTop: space.lg }} tint={color.border}>
         <Txt variant="micro" faint style={{ lineHeight: 16 }}>
-          The figures are computed on your device. When BRIC is linked, a summary of them is sent to
-          DeepSeek so he can write this up. He is not a licensed financial adviser and will not
-          recommend specific investments. Religious rulings are summarised for orientation only —
-          take them to a qualified scholar.
+          All the maths happens on your device. When BRIC is linked, a summary goes to DeepSeek so
+          he can write this up. He isn't a licensed financial adviser and won't recommend
+          investments. Anything religious here is a rough guide, so take real questions to a
+          scholar.
         </Txt>
       </Card>
     </Screen>

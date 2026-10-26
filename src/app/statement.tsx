@@ -14,7 +14,7 @@ import { color, space } from '@/theme/tokens';
 /**
  * The closing statement for the month that just ended.
  *
- * Deliberately formal — this is the one moment KEVLAR stops being a logging
+ * Deliberately formal, this is the one moment KEVLAR stops being a logging
  * tool and hands you a verdict.
  */
 export default function Statement() {

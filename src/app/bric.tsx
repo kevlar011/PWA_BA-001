@@ -9,6 +9,7 @@ import { Fade, Pulse, Rise } from '@/components/ui/motion';
 import { notify, Tap } from '@/components/ui/press';
 import { Button, Cursor, Row, Scanlines, Txt } from '@/components/ui/primitives';
 import { sendChat } from '@/lib/bric';
+import { undoAction } from '@/lib/bric-actions';
 import { useBric, type ChatMsg } from '@/lib/bric-store';
 import { formatIn } from '@/lib/currency';
 import { balance, monthTotals, useData } from '@/lib/store';
@@ -18,7 +19,7 @@ import { color, glyph, radius, space } from '@/theme/tokens';
  * The open channel.
  *
  * Everything else in Banking is BRIC commenting on a screen. This is the one
- * place you simply talk to him — the reactor front and centre, live readouts
+ * place you simply talk to him, the reactor front and centre, live readouts
  * either side, and a transcript that streams in as he composes it.
  */
 
@@ -102,6 +103,36 @@ function Message({ m, streaming }: { m: ChatMsg; streaming: boolean }) {
             </Txt>
           </Pulse>
         )}
+        {m.actions?.map((a, i) => {
+          const refused = a.label.startsWith('NOT DONE');
+          return (
+            <Row key={i} style={s.receipt}>
+              <Txt
+                variant="micro"
+                weight="bold"
+                spaced
+                tone={refused ? color.warn : a.undone ? color.textFaint : color.income}
+                style={[{ flex: 1 }, a.undone && { textDecorationLine: 'line-through' }]}>
+                {`${refused ? '✕' : '✓'} ${a.label}`}
+              </Txt>
+              {!refused && !a.undone && (
+                <Pressable
+                  hitSlop={10}
+                  onPress={() => {
+                    undoAction(a);
+                    notify('warning');
+                    useBric.getState().patch(m.id, {
+                      actions: m.actions!.map((x, j) => (j === i ? { ...x, undone: true } : x)),
+                    });
+                  }}>
+                  <Txt variant="micro" weight="bold" spaced tone={color.accent}>
+                    UNDO
+                  </Txt>
+                </Pressable>
+              )}
+            </Row>
+          );
+        })}
       </View>
     </Fade>
   );
@@ -128,7 +159,7 @@ export default function BricChannel() {
   const suggestions = [
     'How am I doing this month?',
     'Where is my money actually going?',
-    'What should I fix first?',
+    'I spent 12 on lunch',
     islamicMode ? 'Where do I stand on zakat?' : 'How long would my savings last?',
   ];
 
@@ -200,7 +231,7 @@ export default function BricChannel() {
             NEURAL LINK OFFLINE
           </Txt>
           <Txt variant="caption" faint style={{ textAlign: 'center', marginTop: space.sm, lineHeight: 20 }}>
-            BRIC thinks with a DeepSeek model. Add your API key in Settings — it stays on this device.
+            BRIC runs on DeepSeek. Add your API key in Settings. It stays on this device.
           </Txt>
           <Button
             label="Link BRIC"
@@ -302,6 +333,17 @@ const s = StyleSheet.create({
   },
   bricWrap: { flexDirection: 'row', gap: space.md, marginBottom: space.lg, maxWidth: '94%' },
   bricRail: { width: 2, alignSelf: 'stretch' },
+  receipt: {
+    alignItems: 'center',
+    gap: space.md,
+    marginTop: space.sm,
+    paddingVertical: 6,
+    paddingHorizontal: space.sm,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: color.border,
+    borderRadius: radius.md,
+  },
   inputRow: { gap: space.sm, alignItems: 'flex-end', paddingTop: space.sm },
   input: {
     flex: 1,

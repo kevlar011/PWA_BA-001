@@ -8,7 +8,7 @@ import { useSession } from '@/lib/session';
 import { useStore } from '@/lib/store';
 import { color, space } from '@/theme/tokens';
 
-/** `14:32` — enough to know it is current without cluttering the header. */
+/** `14:32`, enough to know it is current without cluttering the header. */
 function clock(ts: number): string {
   const d = new Date(ts);
   const today = new Date();
@@ -22,7 +22,7 @@ function clock(ts: number): string {
  * Sync state, visible at a glance.
  *
  * Background failures are deliberately quiet so a dropped connection does not
- * interrupt you — but silence is indistinguishable from "it never ran", which
+ * interrupt you, but silence is indistinguishable from "it never ran", which
  * is exactly the confusion this exists to remove.
  */
 export function SyncPip() {

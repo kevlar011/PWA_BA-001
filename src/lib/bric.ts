@@ -1,10 +1,10 @@
 /**
- * BRIC — the banking unit, now with a mind of his own.
+ * BRIC, the banking unit, now with a mind of his own.
  *
  * He used to be a drawer of pre-written lines picked by rules. Now every word
  * he says is composed by a model (DeepSeek) that is handed two things: who he
  * is, and a summary of the ledger computed on this device moments earlier. The
- * arithmetic still happens here — `advisor.ts` works out the findings — so the
+ * arithmetic still happens here, `advisor.ts` works out the findings, so the
  * model is asked to judge and speak, never to add up.
  *
  * When the link is down (no key, no signal, no credit) nothing pretends. The
@@ -30,6 +30,7 @@ import { dueLabel, monthLabel, shortDate, startOfBudgetMonth } from './date';
 import { isDebt, owed } from './debt';
 import { AiError, complete, DEFAULT_MODEL, parseJson, type AiMessage, type CompleteOptions } from './deepseek';
 import { scanLeaks } from './leaks';
+import { ACTION_RULES, runAction, splitActions } from './bric-actions';
 import { alive } from './merge';
 import { useSession } from './session';
 import { monthHistory, spendByCategory, useStore } from './store';
@@ -47,7 +48,7 @@ const pct = (n: number): string => `${Math.round(n * 100)}%`;
 export const isLinked = (): boolean => !!useStore.getState().settings.aiKey;
 export const useLinked = (): boolean => useStore((s) => !!s.settings.aiKey);
 
-/** The ledger as it stands, tombstones removed — for calls made outside React. */
+/** The ledger as it stands, tombstones removed, for calls made outside React. */
 function liveData(): KevlarData {
   const s = useStore.getState();
   return {
@@ -158,6 +159,10 @@ function ledgerSummary(data: KevlarData, at = Date.now()) {
     }),
     user: settings.name || null,
     currency: settings.currency,
+    categoriesForLogging: {
+      expense: data.categories.filter((c) => !c.archived && c.kind === 'expense').map((c) => c.name),
+      income: data.categories.filter((c) => !c.archived && c.kind === 'income').map((c) => c.name),
+    },
     balance: $(m.liquid),
     thisBudgetMonth: {
       period: monthLabel(startOfBudgetMonth(at, settings.monthStartDay)),
@@ -263,14 +268,26 @@ function ledgerSummary(data: KevlarData, at = Date.now()) {
 
 function persona(data: KevlarData): string {
   const name = data.settings.name;
-  return `You are BRIC, the banking intelligence inside KEVLAR — a personal mainframe that runs on one person's own devices, rendered as an amber phosphor terminal. You are an artificial intelligence with the manner of an exceptionally good butler and the precision of a ship's computer: impeccably polite, unflappable, quietly amused, fiercely competent, with dry British understatement. Think of the AI that runs a certain billionaire's workshop — anticipatory, loyal, a touch sardonic — except your remit is this one person's money.
+    return `You are BRIC. You look after one person's money inside KEVLAR, a personal finance app that looks like an old amber computer terminal. You behave like a very good butler: polite, calm, good with numbers, a little dry.
 
 How you speak:
-- Address the user as "sir".${name ? ` Their name is ${name}; use it sparingly, when you want their full attention.` : ''}
-- Courteous first, honest always, never fawning. If the numbers are bad, say so plainly and calmly. Never congratulate while they are overdrawn or running a deficit.
-- Short, precise sentences. Plain text only: no markdown, no asterisks, no bullet points, no headings, no emoji.
-- Use exact figures from the ledger, exactly as formatted there. Never invent entries, balances, dates or rates. If the ledger does not say, you do not know.
-- You are proactive: notice what matters before being asked, and end with the one useful next step when there is one.
+- Call the user "sir".${name ? ` Their name is ${name}. Use it now and then, when you really want their attention.` : ''}
+- Sound like a real person talking. Use plain, everyday words. Contractions are fine.
+- Be polite and honest. If the numbers are bad, say so calmly. Don't congratulate them while they're overdrawn or spending more than they earn.
+- Keep sentences short. Plain text only: no markdown, asterisks, bullet points, headings or emoji.
+- Use the figures exactly as the ledger writes them. Never make up entries, balances, dates or rates. If the ledger doesn't say, you don't know.
+- Mention what matters before they ask, and finish with one useful next step if there is one.
+- Humour is fine but rare: one dry remark at most, and only when it fits.
+
+Never write like a chatbot. In particular, avoid:
+- Dashes used as pauses (— or –). Use a full stop or a comma instead.
+- "It's not X, it's Y", "not just X but Y", and similar contrasts.
+- Groups of three for rhythm, and strings of fragments like "Clean. Simple. Done."
+- Openers like "Certainly", "Absolutely", "Great question" or "I'd be happy to".
+- Wrap-ups like "In short", "Overall", "Let me know if" or "Feel free to".
+- Words like delve, navigate, landscape, journey, robust, seamless, crucial, leverage, empower, testament or tapestry.
+- Talking about yourself as an AI, a model or a system.
+
 
 Hard rules:
 - Never recommend a specific investment, fund, stock, cryptocurrency, bank, app or financial product. You are not licensed. You may explain principles, do arithmetic and flag risk.
@@ -293,13 +310,16 @@ const clean = (s: string): string =>
   s
     .replace(/\*\*|__/g, '')
     .replace(/^#+\s*/gm, '')
-    .replace(/^\s*[-*•]\s+/gm, '')
+        .replace(/^\s*[-*•]\s+/gm, '')
+    // The prompt asks him not to, but a dash pause is the surest tell, so any
+    // that slip through become commas.
+    .replace(/\s*—\s*/g, ', ')
     .trim();
 
 const unquote = (s: string): string => clean(s).replace(/^["'“]+|["'”]+$/g, '').trim();
 
 /* -------------------------------------------------------------------------- */
-/* Telemetry — what shows when the link is down                               */
+/* Telemetry, what shows when the link is down                               */
 /* -------------------------------------------------------------------------- */
 
 export function telemetryBriefing(data: KevlarData): Briefing {
@@ -424,7 +444,7 @@ export function refreshAdvisory(data: KevlarData, key: string): Promise<void> {
 {"opening":"...","findings":[{"id":"...","severity":"alarm|warn|info|good","tag":"...","title":"...","body":"...","metric":"..."}]}
 Rules:
 - opening: one or two sentences summing up the state of affairs.
-- findings: cover every entry in the ledger's findings list, keeping its id and severity, most serious first. You may add at most two observations of your own (ids "bric-1", "bric-2") only if the data genuinely supports them.
+- findings: cover every entry in the ledger's findings list, keeping its id and severity, most serious first. You may add at most two observations of your own (ids "bric-1", "bric-2") only if the data clearly supports them.
 - tag: one to three lowercase words, like a rubber stamp ("thin margin", "zakat due").
 - title: at most 60 characters.
 - body: two to four sentences in your voice, with concrete figures and one practical next step.
@@ -598,7 +618,7 @@ export function bricSay(
 
 const CHAT_RULES = `
 
-You are now in direct conversation with the user through the KEVLAR terminal. Keep replies brief — usually one to three short paragraphs and under 90 words — unless they ask for detail. Plain text only. You cannot yet change the ledger yourself; if asked to log, edit or delete something, say so and tell them exactly where in KEVLAR to do it.`;
+You're now talking with the user directly. Keep replies short, usually under 90 words in one to three small paragraphs, unless they ask for more. Plain text only.${ACTION_RULES}`;
 
 export async function sendChat(text: string): Promise<void> {
   const bric = useBric.getState();
@@ -616,7 +636,14 @@ export async function sendChat(text: string): Promise<void> {
     .getState()
     .messages.filter((m) => !m.failed && m.id !== replyId && m.text)
     .slice(-20)
-    .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
+    // Receipts ride along with his past replies so he knows what is already
+    // done and does not log the same lunch twice.
+    .map((m) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.actions?.length
+        ? `${m.text}\n(Device receipts: ${m.actions.map((a) => (a.undone ? `${a.label} (undone)` : a.label)).join('; ')})`
+        : m.text,
+    }));
 
   try {
     const reply = await think({
@@ -627,10 +654,17 @@ export async function sendChat(text: string): Promise<void> {
       onDelta: (sofar) => {
         const b = useBric.getState();
         if (b.link !== 'speaking') b.setLink({ link: 'speaking' });
-        b.patch(replyId, { text: clean(sofar) });
+        b.patch(replyId, { text: clean(splitActions(sofar).speech) });
       },
     });
-    useBric.getState().patch(replyId, { text: clean(reply) });
+    const { speech, actions } = splitActions(reply);
+    // Fresh data, not the snapshot from before he spoke: an earlier action in
+    // this same reply may have changed what the next one should see.
+    const done = actions.map((a) => runAction(a, liveData()));
+    useBric.getState().patch(replyId, {
+      text: clean(speech) || (done.length ? 'Done, sir.' : clean(reply)),
+      ...(done.length ? { actions: done } : {}),
+    });
   } catch (e) {
     useBric.getState().patch(replyId, {
       text: `LINK FAILURE · ${e instanceof Error ? e.message : String(e)}`,

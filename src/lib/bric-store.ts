@@ -9,9 +9,11 @@ import type { Briefing, Severity } from './brief';
  * screen so it can be shown instantly on open while a fresh one is composed.
  *
  * Kept apart from the ledger on purpose. It is device-local, never synced and
- * never in a backup — it is derived from the ledger and can always be rebuilt,
+ * never in a backup, it is derived from the ledger and can always be rebuilt,
  * and a conversation is not something the other device needs.
  */
+
+import type { ChatAction } from './bric-actions';
 
 export type ChatMsg = {
   id: string;
@@ -20,6 +22,8 @@ export type ChatMsg = {
   at: number;
   /** Set when the link failed mid-reply; the text is then the failure notice. */
   failed?: boolean;
+  /** What the device carried out on BRIC's behalf, with receipts to undo. */
+  actions?: ChatAction[];
 };
 
 export type AiFinding = {
@@ -44,7 +48,7 @@ type BricState = {
   advisory?: Cached<Advisory>;
   remarks: Record<string, Cached<string>>;
 
-  /* Transient — not persisted. */
+  /* Transient, not persisted. */
   link: LinkState;
   lastError: string | null;
   latency: number | null;

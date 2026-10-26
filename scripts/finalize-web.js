@@ -2,7 +2,7 @@
  * Turns the Expo web export into an installable, native-feeling PWA.
  *
  * Expo's `+html.tsx` hook only runs for static rendering. KEVLAR builds with
- * `web.output: "single"` — a pure client-side app, chosen because the store
+ * `web.output: "single"`, a pure client-side app, chosen because the store
  * touches browser storage at import time and would crash a Node prerender.
  * So the head is patched here instead, after the export.
  *
@@ -16,7 +16,7 @@ const dist = path.join(__dirname, '..', 'dist');
 const indexPath = path.join(dist, 'index.html');
 
 if (!fs.existsSync(indexPath)) {
-  console.error('dist/index.html not found — run `npx expo export --platform web` first.');
+  console.error('dist/index.html not found, run `npx expo export --platform web` first.');
   process.exit(1);
 }
 
@@ -28,7 +28,7 @@ const HEAD = `
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0B0A07" />
     <meta name="color-scheme" content="dark" />
-    <meta name="description" content="Personal mainframe. Banking and docket, on your device." />
+    <meta name="description" content="A personal money tracker that keeps everything on your device." />
     <link rel="apple-touch-icon" href="./icon-180.png" />
     <link rel="manifest" href="./manifest.json" />
     <style id="kevlar-shell">
@@ -84,7 +84,7 @@ const HEAD = `
 let html = fs.readFileSync(indexPath, 'utf8');
 
 if (html.includes('kevlar-shell')) {
-  console.log('index.html already finalized — nothing to do.');
+  console.log('index.html already finalized, nothing to do.');
   process.exit(0);
 }
 
@@ -98,4 +98,4 @@ html = html.replace(
 html = html.replace('</head>', `${HEAD}  </head>`);
 
 fs.writeFileSync(indexPath, html);
-console.log('finalized dist/index.html — PWA meta, shell CSS, service worker, persistent storage');
+console.log('finalized dist/index.html, PWA meta, shell CSS, service worker, persistent storage');

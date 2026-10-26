@@ -9,7 +9,7 @@ const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 /**
  * Monthly in/out as paired columns.
  *
- * Hard-edged and unrounded on purpose — this should read as something a
+ * Hard-edged and unrounded on purpose, this should read as something a
  * terminal plotted, not as a modern charting library.
  */
 export function TrendChart({

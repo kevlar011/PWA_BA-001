@@ -1,7 +1,7 @@
 /**
  * KEVLAR domain model.
  *
- * One person, one balance, one document — one owner, one encryption key and
+ * One person, one balance, one document, one owner, one encryption key and
  * one merge pass.
  *
  * `tasks` is the retired docket's board. No screen shows it any more, but it
@@ -90,7 +90,7 @@ export type Recurring = Tracked & {
 };
 
 /* -------------------------------------------------------------------------- */
-/* DOCKET (retired — kept only so old notes survive)                          */
+/* DOCKET (retired, kept only so old notes survive)                          */
 /* -------------------------------------------------------------------------- */
 
 /** Where a note sits. `blocked` is deliberately distinct from `open`: it means
@@ -111,7 +111,7 @@ export type Step = {
  * One entry in the docket.
  *
  * Deliberately a note first and a task second: the body is the point, and
- * everything else — a deadline, a checklist, a status — is optional structure
+ * everything else, a deadline, a checklist, a status, is optional structure
  * for the entries that earn it.
  */
 export type Task = Tracked & {
@@ -125,7 +125,7 @@ export type Task = Tracked & {
   due?: number;
   /**
    * Ordered checklist. Merged as one value with the note rather than as
-   * records of their own — two devices editing the same checklist offline is
+   * records of their own, two devices editing the same checklist offline is
    * not a case worth carrying tombstones for.
    */
   steps: Step[];
@@ -192,7 +192,7 @@ export type Settings = {
   passphraseCheck?: string;
   /**
    * Held on the device so sync can run unattended. No worse than the ledger
-   * it protects, which sits in the same storage — but it is the reason the
+   * it protects, which sits in the same storage, but it is the reason the
    * app lock exists.
    */
   passphrase?: string;
@@ -202,7 +202,7 @@ export type Settings = {
 
   /**
    * DeepSeek API key. Device-only, like the sync credentials: never synced,
-   * never exported, and never built into the site — the site is public.
+   * never exported, and never built into the site, the site is public.
    */
   aiKey?: string;
   /** Which model BRIC thinks with. Harmless to sync. */
@@ -219,7 +219,7 @@ export type KevlarData = {
   goals: Goal[];
   recurring: Recurring[];
 
-  /* Retired docket — stored and synced, never shown */
+  /* Retired docket, stored and synced, never shown */
   tasks: Task[];
 
   settings: Settings;

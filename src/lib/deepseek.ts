@@ -3,7 +3,7 @@
  *
  * Called straight from the device. The site is static and public, so there is
  * no server that could hold the key on the user's behalf without also handing
- * it to anyone who found the URL — the key is entered once per device, stored
+ * it to anyone who found the URL, the key is entered once per device, stored
  * beside the ledger it serves, and sent nowhere but DeepSeek.
  *
  * DeepSeek speaks the OpenAI chat-completions dialect. Thinking mode is turned

@@ -63,10 +63,10 @@ export default function Home() {
                 ) : (
                   <Txt variant="micro" faint style={{ lineHeight: 16, marginTop: 4 }}>
                     {!linked
-                      ? 'BRIC is dormant. Link a DeepSeek key and he wakes. Telemetry below.'
+                      ? 'BRIC is off. Add a DeepSeek key in Settings to switch him on. Raw numbers below.'
                       : faulted
-                        ? 'Link fault — showing raw telemetry. Tap the core to retry in the channel.'
-                        : 'Composing… showing raw telemetry meanwhile.'}
+                        ? "Can't reach BRIC right now, so these are the raw numbers. Tap the core to try again."
+                        : 'BRIC is writing. Raw numbers for now.'}
                   </Txt>
                 )}
               </View>
@@ -103,7 +103,7 @@ export default function Home() {
           </Card>
         </Rise>
 
-        {/* Balance — swipe sideways for other currencies */}
+        {/* Balance. Swipe sideways for other currencies. */}
         <Rise delay={100}>
           <Card label="balance" tint={color.accent} style={{ paddingVertical: space.xl }}>
             <CurrencyStrip
@@ -163,7 +163,7 @@ export default function Home() {
           {recent.length === 0 ? (
             <Card>
               <Txt variant="caption" dim style={{ textAlign: 'center', lineHeight: 19 }}>
-                Nothing logged yet. Tap a category above, enter the amount, done.
+                Nothing logged yet. Tap a category above and type the amount.
               </Txt>
             </Card>
           ) : (

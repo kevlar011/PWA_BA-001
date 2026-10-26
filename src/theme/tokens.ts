@@ -1,11 +1,11 @@
 import { Platform } from 'react-native';
 
 /**
- * KEVLAR — amber phosphor CRT.
+ * KEVLAR, amber phosphor CRT.
  *
  * The whole look is one idea: a 1987 monochrome terminal that someone hooked
  * up to their bank. Amber on near-black, monospace everything, chunky frames.
- * Colour is rationed — it only appears where money has a direction.
+ * Colour is rationed, it only appears where money has a direction.
  */
 
 export const color = {
@@ -42,7 +42,7 @@ export const color = {
   scanline: 'rgba(0,0,0,0.22)',
 
   /*
-   * Bureaucratic layer — the retrofuturistic-agency register. Burnt orange
+   * Bureaucratic layer, the retrofuturistic-agency register. Burnt orange
    * and mustard on bone, for anything that should read as an official form
    * rather than a screen readout.
    */
@@ -55,7 +55,7 @@ export const color = {
   stampOk: '#4A7C3F',
 } as const;
 
-/** Terminal-safe category colours — all readable against the dark phosphor bg. */
+/** Terminal-safe category colours, all readable against the dark phosphor bg. */
 export const swatch = [
   '#FFB000',
   '#4AE87A',
@@ -70,7 +70,7 @@ export const swatch = [
 ] as const;
 
 /**
- * Monospace stack. No bundled font files — these ship with every OS.
+ * Monospace stack. No bundled font files, these ship with every OS.
  *
  * `ui-monospace` resolves to SF Mono on Apple platforms, which is materially
  * wider and heavier than Courier New. That matters: the PWA runs as web even
@@ -103,7 +103,7 @@ export const radius = {
 } as const;
 
 export const font = {
-  // Bumped roughly 15% across the board — monospace runs visually smaller
+  // Bumped roughly 15% across the board, monospace runs visually smaller
   // than a proportional face at the same nominal size.
   size: {
     micro: 12,

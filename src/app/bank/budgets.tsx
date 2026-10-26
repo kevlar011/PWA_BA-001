@@ -204,8 +204,7 @@ export default function Budgets() {
       {history.every((m) => m.income === 0 && m.expense === 0) ? (
         <Card>
           <Txt variant="caption" dim style={{ textAlign: 'center', lineHeight: 19 }}>
-            Not enough history yet. Log through a full month and the shape of your spending shows
-            up here.
+            Not enough history yet. Give it a full month and your spending will show up here.
           </Txt>
         </Card>
       ) : (

@@ -126,8 +126,7 @@ export default function Onboarding() {
 
       <Rise delay={80}>
         <Txt variant="caption" dim style={{ lineHeight: 19 }}>
-          A name, and roughly what you have right now. That is the whole setup — no accounts, no
-          logins. BRIC can be woken later from Settings.
+          Just your name and roughly how much money you have right now. There's no account to make. You can switch BRIC on later in Settings.
         </Txt>
       </Rise>
 
@@ -164,7 +163,7 @@ export default function Onboarding() {
             />
           </Row>
           <Txt variant="micro" faint style={{ marginTop: space.sm, lineHeight: 16 }}>
-            Everything you log adds or subtracts from this. Rough is fine — you can change it later.
+            Everything you log adds to or takes away from this. A rough number is fine, you can change it later.
           </Txt>
         </Card>
       </Rise>

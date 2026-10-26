@@ -24,7 +24,7 @@ import { Tap } from './press';
 /**
  * Scanlines. Pure decoration, and deliberately cheap: one absolutely
  * positioned layer with a repeating gradient, no per-line views.
- * Web-only — React Native has no repeating-gradient primitive.
+ * Web-only, React Native has no repeating-gradient primitive.
  */
 export function Scanlines() {
   if (Platform.OS !== 'web') return null;
@@ -283,7 +283,7 @@ export function Empty({ icon, title, body }: { icon: string; title: string; body
 /* -------------------------------------------------------------------------- */
 
 /**
- * Blocky segmented meter — ▓ for filled, ░ for empty. Reads as a progress bar
+ * Blocky segmented meter, ▓ for filled, ░ for empty. Reads as a progress bar
  * but looks like it was drawn in codepage 437.
  */
 export function Bar({

@@ -72,7 +72,7 @@ export function useRolling(target: number, ms = 550): number {
 
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / ms);
-      // easeOutCubic — fast to start, settles gently.
+      // easeOutCubic, fast to start, settles gently.
       const eased = 1 - Math.pow(1 - t, 3);
       const next = Math.round(origin + delta * eased);
       setValue(next);

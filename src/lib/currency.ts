@@ -3,7 +3,7 @@
  *
  * KEVLAR is offline by design, so rates can't be live. They ship as editable
  * defaults and every conversion is labelled with the date the rates were last
- * set — an honest stale number beats a fake live one.
+ * set, an honest stale number beats a fake live one.
  */
 
 export type Currency = {

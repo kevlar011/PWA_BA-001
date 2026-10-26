@@ -112,7 +112,7 @@ export default function Log() {
           title={data.transactions.length === 0 ? 'Nothing logged yet' : 'No matches'}
           body={
             data.transactions.length === 0
-              ? 'Tap a category on the home screen, punch in the amount, and it lands here.'
+              ? 'Log something from the home screen and it shows up here.'
               : 'Try a different search or filter.'
           }
         />

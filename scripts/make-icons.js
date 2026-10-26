@@ -1,7 +1,7 @@
 /**
  * Generates KEVLAR's app icon, splash mark and favicon.
  *
- * Written as a tiny PNG encoder rather than pulling in a graphics dependency —
+ * Written as a tiny PNG encoder rather than pulling in a graphics dependency,
  * the artwork is pure geometry (a bracketed monogram on amber phosphor), so a
  * few hundred lines of pixel maths is cheaper than another node_modules tree.
  *
@@ -135,7 +135,7 @@ function drawMark(c, opts = {}) {
 
   if (bg) c.fill(BG);
 
-  // Outer bracket frame — corners only, like a targeting reticle.
+  // Outer bracket frame, corners only, like a targeting reticle.
   const inset = S * 0.11;
   const thick = Math.max(2, S * 0.028);
   const armLen = S * 0.17;

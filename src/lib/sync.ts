@@ -47,7 +47,7 @@ function forUpload(data: KevlarData): KevlarData {
   return { ...data, settings };
 }
 
-/** Fetch with a hard timeout — a hung request should not hang the app. */
+/** Fetch with a hard timeout, a hung request should not hang the app. */
 async function req(input: string, init: RequestInit, ms = 12_000): Promise<Response> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
@@ -135,7 +135,7 @@ export async function syncNow(
  * Downloads the server copy and returns it verbatim, with no merge.
  *
  * For adopting a device: a fresh install has just been through onboarding, so
- * its settings are genuinely the newest and would win a merge — overwriting
+ * its settings really are the newest and would win a merge, overwriting
  * the ledger you actually care about. This takes the server's word instead.
  */
 export async function pullOnly(

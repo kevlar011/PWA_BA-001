@@ -14,7 +14,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'] as c
 
 /**
  * Appends a keypress to an amount string, rejecting anything that would make
- * it unparseable — a second decimal point, or a third decimal place.
+ * it unparseable, a second decimal point, or a third decimal place.
  */
 export function applyKey(current: string, key: string): string {
   if (key === '⌫') return current.slice(0, -1);

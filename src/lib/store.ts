@@ -240,7 +240,7 @@ export const useStore = create<KevlarStore>()(
       resetAll: () => set({ ...emptyData() }),
 
       restore: (raw) => {
-        // A backup is the only copy, so be strict rather than forgiving —
+        // A backup is the only copy, so be strict rather than forgiving,
         // half-importing a malformed file would be worse than refusing it.
         if (!raw || typeof raw !== 'object') return { ok: false, error: 'Not a KEVLAR backup.' };
         const d = raw as Partial<KevlarData>;

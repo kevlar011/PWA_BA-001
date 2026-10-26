@@ -138,9 +138,9 @@ export default function Sync() {
       <Rise delay={60}>
         <Card tint={color.border}>
           <Txt variant="caption" dim style={{ lineHeight: 19 }}>
-            Your ledger is encrypted here before it goes anywhere. The server holds a blob it cannot
-            read, under an identifier it cannot reverse. Lose the passphrase and the data is gone
-            for good — there is no reset, by design.
+            Your ledger is encrypted on this device before it's sent. The server only stores
+          scrambled data it can't read. If you lose the passphrase there's no way to reset it, and
+          the synced copy can't be recovered.
           </Txt>
         </Card>
       </Rise>
@@ -151,7 +151,7 @@ export default function Sync() {
           <TextInput
             value={phrase}
             onChangeText={setPhrase}
-            placeholder="Something long you will not forget"
+            placeholder="Something long you'll remember"
             placeholderTextColor={color.textFaint}
             secureTextEntry
             autoCapitalize="none"
@@ -159,8 +159,8 @@ export default function Sync() {
             style={s.input}
           />
           <Txt variant="micro" faint style={{ marginTop: space.sm, lineHeight: 16 }}>
-            Use the same phrase on every device. A few unrelated words beats a short complicated
-            one. It is never transmitted and never stored anywhere but here.
+            Use the same phrase on every device. A few random words work better than one short,
+          complicated word. It's never sent anywhere and it's only stored here.
           </Txt>
         </Card>
       </Rise>
@@ -229,8 +229,8 @@ export default function Sync() {
             onPress={adopt}
           />
           <Txt variant="micro" faint style={{ marginTop: space.sm, lineHeight: 16 }}>
-            Use this when setting up a new device. It discards whatever is on this one and takes
-            the server copy exactly, rather than merging.
+            Use this when you're setting up a new device. It throws away what's on this one and
+            copies the server version exactly, without merging.
           </Txt>
 
           {status && (
@@ -245,10 +245,10 @@ export default function Sync() {
       </Rise>
 
       <Rise delay={300}>
-        <SectionTitle>Setting up the shelf</SectionTitle>
+        <SectionTitle>Setting up the server</SectionTitle>
         <Card>
           <Txt variant="caption" dim style={{ lineHeight: 19 }}>
-            One-time, about three minutes:
+            You only do this once. It takes about three minutes:
           </Txt>
           {[
             'Create a free project at supabase.com',
@@ -280,8 +280,8 @@ create policy "blobs are opaque" on kevlar_sync
           </View>
 
           <Txt variant="micro" faint style={{ marginTop: space.md, lineHeight: 16 }}>
-            That policy is deliberately open — the row id is unguessable and the contents are
-            encrypted, so access control is your passphrase rather than the database.
+            The policy is open on purpose. The row id can't be guessed and the data is encrypted, so
+          your passphrase is what keeps it safe, not the database.
           </Txt>
         </Card>
       </Rise>

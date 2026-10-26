@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import type { Mood } from '@/components/ui/agency';
 
 /**
- * Ephemeral UI state — deliberately not persisted.
+ * Ephemeral UI state, deliberately not persisted.
  *
  * Undo prompts, BRIC's transient remarks and the update banner should all
  * vanish when the app closes. Putting them in the main store would write them

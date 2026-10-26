@@ -7,8 +7,8 @@
  * instead of adding another list to the document for one feature.
  *
  * The planner simulates month by month, in cents, for the two standard
- * orders — smallest balance first (snowball) and highest rate first
- * (avalanche) — and reports which gets out sooner and cheaper. Arithmetic
+ * orders, smallest balance first (snowball) and highest rate first
+ * (avalanche), and reports which gets out sooner and cheaper. Arithmetic
  * only. It never suggests borrowing to pay borrowing.
  */
 

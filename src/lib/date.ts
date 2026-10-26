@@ -47,7 +47,7 @@ export const monthLabel = (ts: number): string => {
   return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 };
 
-/** `Today` / `Yesterday` / `Mon 4 Aug` — used as transaction list section headers. */
+/** `Today` / `Yesterday` / `Mon 4 Aug`, used as transaction list section headers. */
 export function dayLabel(ts: number): string {
   const today = startOfDay(Date.now());
   const day = startOfDay(ts);

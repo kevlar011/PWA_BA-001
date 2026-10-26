@@ -97,7 +97,7 @@ function mergeSettings(local: Settings, remote: Settings): Settings {
     }
     if (lTime !== undefined && rTime === undefined) continue;
 
-    // Neither was set explicitly — prefer whichever actually holds a value.
+    // Neither was set explicitly, prefer whichever actually holds a value.
     if (isBlank(lVal) && !isBlank(rVal)) out[key] = rVal;
   }
 
@@ -131,7 +131,7 @@ export function mergeData(local: KevlarData, remote: KevlarData): KevlarData {
   };
 }
 
-/** Live records only — tombstones are an implementation detail of sync. */
+/** Live records only, tombstones are an implementation detail of sync. */
 export const alive = <T extends { deletedAt?: number }>(list: T[]): T[] =>
   list.filter((r) => !r.deletedAt);
 

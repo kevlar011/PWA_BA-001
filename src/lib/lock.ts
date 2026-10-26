@@ -2,7 +2,7 @@
  * The app lock.
  *
  * Two ways in, both resolving to the same thing:
- *   · the passphrase you already use for sync — one secret, not two
+ *   · the passphrase you already use for sync, one secret, not two
  *   · a platform passkey, which is Face ID on the iPhone and Windows Hello
  *     on the PC, with no extra setup beyond enrolling once
  *
@@ -67,7 +67,7 @@ export async function enrolPasskey(name: string): Promise<{ ok: boolean; error?:
         challenge,
         rp: { name: 'KEVLAR' },
         user: { id: userId, name: name || 'kevlar', displayName: name || 'KEVLAR' },
-        // ES256 then RS256 — between them every platform authenticator is covered.
+        // ES256 then RS256, between them every platform authenticator is covered.
         pubKeyCredParams: [
           { type: 'public-key', alg: -7 },
           { type: 'public-key', alg: -257 },

@@ -48,7 +48,7 @@ export function SystemBar() {
  * `Screen` pads itself by the top safe-area inset, which is correct when it is
  * the topmost thing on screen and wrong once the bar has already eaten that
  * space. Rather than teach every screen about the bar, the inset is overridden
- * for everything below it — the bar consumed it, so as far as the children are
+ * for everything below it, the bar consumed it, so as far as the children are
  * concerned there is no notch left to avoid.
  */
 export function Frame({ children }: { children: ReactNode }) {

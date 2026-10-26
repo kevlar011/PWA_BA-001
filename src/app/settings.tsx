@@ -130,7 +130,7 @@ export default function Settings() {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHardware || !enrolled) {
-        setStatus('No biometrics enrolled — type ERASE to confirm instead.');
+        setStatus("Face ID isn't set up. Type ERASE to confirm instead.");
         return;
       }
       const res = await LocalAuthentication.authenticateAsync({
@@ -140,7 +140,7 @@ export default function Settings() {
       if (res.success) wipe();
       else setStatus('Cancelled. Nothing was erased.');
     } catch {
-      setStatus('Biometrics unavailable — type ERASE to confirm instead.');
+      setStatus("Face ID isn't available. Type ERASE to confirm instead.");
     }
   }
 
@@ -257,7 +257,7 @@ export default function Settings() {
         <SectionTitle>Exchange rates</SectionTitle>
         <Card label="units per 1 USD">
           <Txt variant="micro" dim style={{ marginBottom: space.md, lineHeight: 16 }}>
-            KEVLAR is offline, so it can't fetch live rates. Correct any you care about.
+            KEVLAR doesn't fetch live rates, so fix any that look wrong.
           </Txt>
           {(settings.travelCurrencies ?? [])
             .filter((code) => code !== 'USD')
@@ -363,7 +363,7 @@ export default function Settings() {
                 Halal mode
               </Txt>
               <Txt variant="micro" faint style={{ marginTop: 2, lineHeight: 16 }}>
-                Zakat tracking, riba warnings, and halal screening principles in the advisory.
+                Adds zakat tracking and riba warnings to the advisory.
               </Txt>
             </View>
             <Switch
@@ -377,7 +377,7 @@ export default function Settings() {
           {settings.islamicMode && (
             <>
               <Txt variant="micro" faint style={{ marginTop: space.lg, marginBottom: space.sm }}>
-                GOLD PRICE PER GRAM ({settings.currency}) — SETS THE NISAB
+                GOLD PRICE PER GRAM ({settings.currency}) · SETS THE NISAB
               </Txt>
               <TextInput
                 defaultValue={
@@ -417,7 +417,7 @@ export default function Settings() {
               disabled={!settings.passphraseCheck}
               onValueChange={(v) => {
                 // Turning it off is safe. Turning it on is not, until the
-                // passphrase has been proven against the stored fingerprint —
+                // passphrase has been proven against the stored fingerprint,
                 // otherwise a bad fingerprint locks you out of your own data
                 // with no way back in on a phone.
                 if (!v) {
@@ -596,9 +596,9 @@ export default function Settings() {
         <SectionTitle>Your data</SectionTitle>
         <Card>
           <Txt variant="caption" dim style={{ marginBottom: space.md, lineHeight: 19 }}>
-            Your ledger lives on this device. If sync is on, it also lives encrypted on your
-            server — unreadable without your passphrase. A backup is still the only copy you
-            control outright.
+            Your ledger lives on this device. With sync on, an encrypted copy also sits on your
+          server, and nobody can read it without your passphrase. A backup file is still the only
+          copy that's fully in your hands.
           </Txt>
           {settings.lastBackupAt && (
             <Txt variant="micro" faint style={{ marginBottom: space.md }}>

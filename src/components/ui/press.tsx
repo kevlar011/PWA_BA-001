@@ -50,7 +50,7 @@ type TapProps = Omit<PressableProps, 'style'> & {
 /**
  * A pressable that physically responds.
  *
- * Springs down on touch and overshoots very slightly on release — the thing
+ * Springs down on touch and overshoots very slightly on release, the thing
  * that separates an app that feels alive from one that feels like a web page.
  */
 export function Tap({

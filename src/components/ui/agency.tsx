@@ -12,8 +12,8 @@ import { Row, Txt } from './primitives';
 /* -------------------------------------------------------------------------- */
 
 /**
- * Document header. Every screen is a form issued by an authority that takes
- * itself far too seriously, which is the joke.
+ * Document header. Each screen is styled like a form from an overly serious
+ * government office.
  */
 export function FileHeader({
   title,

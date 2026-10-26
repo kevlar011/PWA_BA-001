@@ -13,7 +13,7 @@ import { color, radius, space } from '@/theme/tokens';
  * The "Paying off" section of the goals tab.
  *
  * Debts are goals with a `debt` block (see `lib/debt.ts`), so adding one is
- * `addGoal` and paying one is `contributeToGoal` — plus a real expense in the
+ * `addGoal` and paying one is `contributeToGoal`, plus a real expense in the
  * ledger, because a payment is money leaving whether or not it feels like
  * spending.
  */
@@ -137,7 +137,7 @@ export function DebtsSection() {
       )}
 
       {debts.length === 0 && !form ? (
-        <Empty icon="🧾" title="No debts on file" body="Add a loan or card and BRIC plans the fastest way out." />
+        <Empty icon="🧾" title="No debts on file" body="Add a loan or a card and BRIC works out the quickest way to pay it off." />
       ) : (
         <>
           {plans && (
@@ -172,7 +172,7 @@ export function DebtsSection() {
                   </Row>
                   <Txt variant="micro" faint style={{ marginTop: 4, lineHeight: 16 }}>
                     {p.months === null
-                      ? 'The payments never outrun the interest. Raise the extra.'
+                      ? 'At this rate the interest grows faster than you pay. Add more each month.'
                       : `${p.interest > 0 ? `${money(p.interest)} interest · ` : ''}${p.order.join(' → ')}`}
                   </Txt>
                 </View>

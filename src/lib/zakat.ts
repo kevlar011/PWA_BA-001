@@ -1,8 +1,8 @@
 /**
  * Zakat, with the hawl actually tracked.
  *
- * The obligation is not "you are rich today" — it is "you have held wealth
- * above the nisab for a full lunar year". So KEVLAR watches the threshold
+ * Zakat is owed once you have held wealth above the nisab for a full lunar
+ * year, so having a lot today isn't enough on its own. KEVLAR watches the threshold
  * crossing, starts a clock, and resets it if you drop back below.
  *
  * This computes an estimate from logged balances only. It knows nothing about
@@ -101,10 +101,10 @@ export function reconcileHawl(data: KevlarData): Partial<Settings> | null {
   const above = balance(data) >= nisab;
   const started = data.settings.hawlStartedAt;
 
-  // Crossed above the threshold with no clock running — start one.
+  // Crossed above the threshold with no clock running, start one.
   if (above && !started) return { hawlStartedAt: Date.now() };
 
-  // Dropped below the threshold — the qualifying period is broken.
+  // Dropped below the threshold, the qualifying period is broken.
   if (!above && started) return { hawlStartedAt: undefined };
 
   return null;
@@ -121,7 +121,7 @@ export function settleZakat(data: KevlarData): Partial<Settings> {
   };
 }
 
-/** `12 Mar 2027` — when the current hawl completes. */
+/** `12 Mar 2027`, when the current hawl completes. */
 export function hawlCompletesOn(startedAt: number): number {
   return startedAt + HAWL_DAYS * DAY;
 }

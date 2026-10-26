@@ -67,8 +67,8 @@ export function NeuralLink() {
           <LinkStatus />
           <Txt variant="micro" faint style={{ marginTop: 4, lineHeight: 16 }}>
             {linked
-              ? 'BRIC is awake. Every word he says is composed live.'
-              : 'BRIC thinks with a DeepSeek model. Paste an API key from platform.deepseek.com to wake him.'}
+              ? 'BRIC is on and writing his own replies.'
+              : 'BRIC runs on DeepSeek. Paste an API key from platform.deepseek.com to switch him on.'}
           </Txt>
         </View>
       </Row>
@@ -147,9 +147,10 @@ export function NeuralLink() {
       )}
 
       <Txt variant="micro" faint style={{ marginTop: space.lg, lineHeight: 16 }}>
-        The key is stored only on this device. It is never synced, never put in a backup and never
-        sent anywhere except DeepSeek. While linked, each time BRIC thinks he sends DeepSeek a
-        summary of your ledger — balances, categories, recent entries and their notes. Arm the app lock if anyone else uses this device.
+        Your key stays on this device. It isn't synced or put in backups, and it only ever goes to
+        DeepSeek. While BRIC is linked, he sends DeepSeek a summary of your ledger each time he
+        replies: balances, categories, and recent entries with their notes. If anyone else uses
+        this device, turn on the app lock.
       </Txt>
     </Card>
   );

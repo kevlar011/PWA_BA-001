@@ -19,7 +19,7 @@ import type { Mood } from '@/components/ui/agency';
  *
  * A heads-up reactor rather than a mask: concentric rings in amber phosphor
  * that turn at their own speeds around a pulsing core. The one place in KEVLAR
- * that is allowed circles — a terminal's idea of a mind.
+ * that is allowed circles, a terminal's idea of a mind.
  *
  * It reads its state at a glance from across a room:
  *   · idle      rings drift, core breathes slowly

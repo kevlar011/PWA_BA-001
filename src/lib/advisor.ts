@@ -2,7 +2,7 @@
  * The facts BRIC reasons from.
  *
  * This file used to hold BRIC's voice as well. It no longer does: BRIC is now a
- * model, and he writes his own sentences. What stays here is the arithmetic —
+ * model, and he writes his own sentences. What stays here is the arithmetic,
  * every conclusion is still computed on the device from the user's own ledger,
  * so the model is handed findings it can trust rather than asked to add up.
  *
@@ -28,7 +28,7 @@ export type Finding = {
   severity: Severity;
   /** Rubber-stamp label, a couple of lowercase words. */
   tag: string;
-  /** Terminal readout. Uppercase, terse, figures only — no personality. */
+  /** Terminal readout. Uppercase, terse, figures only, no personality. */
   readout: string;
   metric?: string;
   href: string;

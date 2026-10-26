@@ -2,7 +2,7 @@
  * Client-side encryption for sync.
  *
  * Your ledger is encrypted on this device before it goes anywhere. The server
- * only ever receives an opaque blob and an identifier it cannot reverse — it
+ * only ever receives an opaque blob and an identifier it cannot reverse, it
  * has no way to read your figures, and neither does anyone who finds the app.
  *
  * One passphrase does two jobs, derived separately so neither leaks the other:
@@ -22,7 +22,7 @@ const ITERATIONS = 310_000;
 /*
  * Fixed salts. A random per-user salt would be better cryptographic practice,
  * but it would have to be stored somewhere both devices can reach *before*
- * they can talk to each other — a chicken-and-egg problem. These are domain
+ * they can talk to each other, a chicken-and-egg problem. These are domain
  * separators: they stop the key and the id being derivable from one another.
  */
 const KEY_SALT = enc.encode('kevlar/v1/key');
@@ -43,7 +43,7 @@ const toB64 = (buf: ArrayBuffer): string => {
   return btoa(out);
 };
 
-/** Returns a plain ArrayBuffer — WebCrypto's types reject the SharedArrayBuffer-capable view. */
+/** Returns a plain ArrayBuffer, WebCrypto's types reject the SharedArrayBuffer-capable view. */
 const fromB64 = (s: string): ArrayBuffer => {
   const bin = atob(s);
   const out = new Uint8Array(new ArrayBuffer(bin.length));
@@ -103,7 +103,7 @@ export async function seal(key: CryptoKey, value: unknown): Promise<Sealed> {
 }
 
 /**
- * Decrypts a blob. Throws on a wrong passphrase — AES-GCM authenticates, so a
+ * Decrypts a blob. Throws on a wrong passphrase, AES-GCM authenticates, so a
  * bad key fails loudly rather than returning plausible nonsense.
  */
 export async function open<T>(key: CryptoKey, sealed: Sealed): Promise<T> {

@@ -17,7 +17,7 @@ const LINGER = 4600;
 const PENDING_LINGER = 10_000;
 
 /**
- * BRIC's transient voice — confirmations, corrections, undo.
+ * BRIC's transient voice, confirmations, corrections, undo.
  *
  * Sits above the tab bar so it never covers the thing you just acted on, and
  * withdraws on its own. Anything reversible gets an UNDO on the right. BRIC's
@@ -28,7 +28,7 @@ export function BricBar() {
   const dismiss = useSession((s) => s.dismiss);
   const insets = useSafeAreaInsets();
 
-  // Restart the timer whenever the remark changes — including when BRIC's
+  // Restart the timer whenever the remark changes, including when BRIC's
   // own line replaces the receipt, so it gets its full time on screen.
   useEffect(() => {
     if (!toast) return;

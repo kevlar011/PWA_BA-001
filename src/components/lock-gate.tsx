@@ -30,7 +30,7 @@ export function LockGate() {
   const locked = hydrated && settings.lockEnabled && !unlocked;
   const greeting = useTypewriter(locked ? 'KEVLAR LOCKED. IDENTIFY YOURSELF.' : '', 45);
 
-  /* Offer the biometric prompt straight away — one less tap in the common case. */
+  /* Offer the biometric prompt straight away, one less tap in the common case. */
   useEffect(() => {
     if (!locked || tried.current || !hasPasskey()) return;
     tried.current = true;
@@ -139,8 +139,8 @@ export function LockGate() {
           </Rise>
 
           <Txt variant="micro" faint style={{ textAlign: 'center', marginTop: space.xxl, lineHeight: 16 }}>
-            Everything stays on this device. There is no recovery — the
-            passphrase is the only way in.
+            Everything stays on this device. If you forget the passphrase, there's no way back
+          in.
           </Txt>
         </View>
       </Screen>
@@ -151,7 +151,7 @@ export function LockGate() {
 const s = StyleSheet.create({
   overlay: {
     // Written out rather than spreading StyleSheet.absoluteFill, which is a
-    // registered style id — spreading it silently produces an empty object
+    // registered style id, spreading it silently produces an empty object
     // and the gate ends up rendering below the app instead of over it.
     position: 'absolute',
     top: 0,

@@ -6,7 +6,7 @@
  * until the creep is the budget. Both are visible in the ledger long before
  * they are visible in the balance, so this looks for them there.
  *
- * Pure arithmetic over the user's own entries, like the rest of the advisor —
+ * Pure arithmetic over the user's own entries, like the rest of the advisor,
  * BRIC is handed the results, never asked to find them.
  */
 
@@ -18,7 +18,7 @@ export type Leak =
   | {
       kind: 'repeat';
       key: string;
-      /** What to call it — the note if there is one, else the category. */
+      /** What to call it, the note if there is one, else the category. */
       name: string;
       categoryId?: string;
       /** Typical charge, cents. */
@@ -68,7 +68,7 @@ const PER_YEAR: Record<RecurrenceUnit, number> = { week: 52, month: 12, year: 1 
 
 /**
  * Charges that keep coming back at a biller's rhythm but are not on the
- * recurring list — the subscriptions nobody wrote down.
+ * recurring list, the subscriptions nobody wrote down.
  */
 function repeats(data: KevlarData, at: number): Leak[] {
   const groups = new Map<string, Transaction[]>();

@@ -5,8 +5,8 @@
  * it can: when the app opens, when it comes back to the foreground, and a few
  * seconds after you stop making changes.
  *
- * The awkward part is not the triggering — it is making sure a sync, which
- * writes to the store, does not immediately look like a change worth syncing.
+ * Triggering is easy. The tricky bit is that a sync writes to the store, and
+ * that write shouldn't look like a fresh change that needs syncing again.
  * `inFlight` guards that.
  */
 
@@ -106,7 +106,7 @@ export async function runSync(
  * Polls while the app is on screen.
  *
  * Foreground and open events cover switching between devices, but not the
- * case where both are open at once — the PC sitting there while something is
+ * case where both are open at once, the PC sitting there while something is
  * logged on the phone. A slow poll makes that feel continuous without
  * hammering the server.
  */
