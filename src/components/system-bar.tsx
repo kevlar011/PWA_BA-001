@@ -5,60 +5,27 @@ import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area
 
 import { SyncPip } from '@/components/sync-pip';
 import { Tap } from '@/components/ui/press';
-import { Row, Txt } from '@/components/ui/primitives';
+import { Txt, Row } from '@/components/ui/primitives';
 import { color, space } from '@/theme/tokens';
 
 /**
- * The chrome every subsystem wears.
+ * The terminal's masthead.
  *
- * A mainframe terminal always told you which subsystem you were talking to and
- * always let you get back to the switcher. That is the entire job here: a
- * breadcrumb back to the mainframe on the left, machine state on the right,
- * and a rule in the subsystem's own phosphor so the colour alone tells you
- * where you are.
+ * There is nothing left to switch between, so the bar no longer pretends to
+ * be a breadcrumb. It says whose machine this is, and keeps sync state and
+ * settings within a thumb's reach.
  */
-export function SystemBar({
-  name,
-  code,
-  tone,
-}: {
-  /** Subsystem name, e.g. BANKING. */
-  name: string;
-  /** Its form number, e.g. BNK-001. */
-  code: string;
-  tone: string;
-}) {
+export function SystemBar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[s.bar, { paddingTop: insets.top + space.xs, borderBottomColor: `${tone}55` }]}>
-      <Tap
-        scale={0.97}
-        weight="light"
-        hitSlop={10}
-        style={s.crumb}
-        onPress={() => router.navigate('/')}>
-        <Row style={{ gap: 5, alignItems: 'center' }}>
-          <Txt variant="micro" weight="bold" tone={color.textFaint}>
-            ◀
-          </Txt>
-          <Txt variant="micro" weight="bold" spaced tone={color.rust}>
-            KEVLAR
-          </Txt>
-          <Txt variant="micro" tone={color.textFaint}>
-            ▸
-          </Txt>
-          <Txt variant="micro" weight="bold" spaced tone={tone}>
-            {name.toUpperCase()}
-          </Txt>
-        </Row>
-      </Tap>
+    <View style={[s.bar, { paddingTop: insets.top + space.xs }]}>
+      <Txt variant="micro" weight="bold" spaced tone={color.accent}>
+        KEVLAR
+      </Txt>
 
       <Row style={{ gap: space.md, alignItems: 'center' }}>
-        <Txt variant="micro" tone={color.textFaint}>
-          {code}
-        </Txt>
         <SyncPip />
         <Tap
           scale={0.9}
@@ -76,31 +43,21 @@ export function SystemBar({
 }
 
 /**
- * Wraps a subsystem's screens so they lay out beneath the bar.
+ * Wraps the tabs so they lay out beneath the bar.
  *
  * `Screen` pads itself by the top safe-area inset, which is correct when it is
- * the topmost thing on screen and wrong once the system bar has already eaten
- * that space. Rather than teach every screen about the bar, the inset is
- * overridden for everything below it — the bar consumed it, so as far as the
- * children are concerned there is no notch left to avoid.
+ * the topmost thing on screen and wrong once the bar has already eaten that
+ * space. Rather than teach every screen about the bar, the inset is overridden
+ * for everything below it — the bar consumed it, so as far as the children are
+ * concerned there is no notch left to avoid.
  */
-export function SubsystemFrame({
-  name,
-  code,
-  tone,
-  children,
-}: {
-  name: string;
-  code: string;
-  tone: string;
-  children: ReactNode;
-}) {
+export function Frame({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const consumed = useMemo(() => ({ ...insets, top: 0 }), [insets]);
 
   return (
     <View style={{ flex: 1, backgroundColor: color.bg }}>
-      <SystemBar name={name} code={code} tone={tone} />
+      <SystemBar />
       <SafeAreaInsetsContext.Provider value={consumed}>
         <View style={{ flex: 1 }}>{children}</View>
       </SafeAreaInsetsContext.Provider>
@@ -117,6 +74,6 @@ const s = StyleSheet.create({
     paddingBottom: space.sm,
     backgroundColor: color.surface,
     borderBottomWidth: 1,
+    borderBottomColor: `${color.accent}55`,
   },
-  crumb: { paddingVertical: 2, paddingRight: space.sm },
 });

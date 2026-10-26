@@ -149,8 +149,7 @@ export function NeuralLink() {
       <Txt variant="micro" faint style={{ marginTop: space.lg, lineHeight: 16 }}>
         The key is stored only on this device. It is never synced, never put in a backup and never
         sent anywhere except DeepSeek. While linked, each time BRIC thinks he sends DeepSeek a
-        summary of your ledger — balances, categories, recent entries and their notes. Your docket
-        is never sent. Arm the app lock if anyone else uses this device.
+        summary of your ledger — balances, categories, recent entries and their notes. Arm the app lock if anyone else uses this device.
       </Txt>
     </Card>
   );

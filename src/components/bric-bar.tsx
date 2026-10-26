@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Bric, Vane } from '@/components/ui/agency';
+import { Bric } from '@/components/ui/agency';
 import { Pulse, useTypewriter } from '@/components/ui/motion';
 import { Tap, notify } from '@/components/ui/press';
 import { Cursor, Row, Txt } from '@/components/ui/primitives';
@@ -17,7 +17,7 @@ const LINGER = 4600;
 const PENDING_LINGER = 10_000;
 
 /**
- * The units' transient voice — confirmations, corrections, undo.
+ * BRIC's transient voice — confirmations, corrections, undo.
  *
  * Sits above the tab bar so it never covers the thing you just acted on, and
  * withdraws on its own. Anything reversible gets an UNDO on the right. BRIC's
@@ -26,7 +26,6 @@ const PENDING_LINGER = 10_000;
 export function BricBar() {
   const toast = useSession((s) => s.toast);
   const dismiss = useSession((s) => s.dismiss);
-  const say = useSession((s) => s.say);
   const insets = useSafeAreaInsets();
 
   // Restart the timer whenever the remark changes — including when BRIC's
@@ -41,7 +40,6 @@ export function BricBar() {
 
   if (!toast) return null;
 
-  const isBric = toast.unit === 'bric';
   // Receipts (uppercase system text) print at once; spoken lines type out.
   const spoken = !toast.pending && toast.text !== toast.text.toUpperCase();
   const shown = spoken ? typed : toast.text;
@@ -53,8 +51,8 @@ export function BricBar() {
       exiting={FadeOutDown.duration(180)}
       pointerEvents="box-none"
       style={[s.wrap, { bottom: insets.bottom + 96 }]}>
-      <View style={[s.bar, isBric && { borderColor: color.accentDim }]}>
-        {isBric ? <Bric mood={toast.mood} size={40} /> : <Vane mood={toast.mood} size={30} />}
+      <View style={[s.bar, { borderColor: color.accentDim }]}>
+        <Bric mood={toast.mood} size={40} />
         <View style={{ flex: 1, marginLeft: space.md }}>
           <Txt
             variant={spoken ? 'caption' : 'micro'}
@@ -81,8 +79,7 @@ export function BricBar() {
             onPress={() => {
               toast.undo?.();
               notify('warning');
-              if (isBric) bricSay('REVERSED', { type: 'undo' }, { mood: 'idle' });
-              else say('Reversed.', { mood: 'idle', unit: 'vane' });
+              bricSay('REVERSED', { type: 'undo' }, { mood: 'idle' });
             }}>
             <Txt variant="micro" weight="bold" spaced tone={color.accentText}>
               UNDO

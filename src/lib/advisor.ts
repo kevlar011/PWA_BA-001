@@ -18,6 +18,8 @@ import { DAY, dueLabel, endOfBudgetMonth, monthLabel, startOfBudgetMonth } from 
 import { balance, dueSoon, monthTotals, spendByCategory } from './store';
 import type { KevlarData } from './types';
 import { SEVERITY_RANK, type Severity } from './brief';
+import { comparePlans, isDebt, owed } from './debt';
+import { scanLeaks } from './leaks';
 
 export type { Severity } from './brief';
 
@@ -367,6 +369,57 @@ export function buildFindings(data: KevlarData, at = Date.now()): Finding[] {
     });
   }
 
+  /* Leaks ----------------------------------------------------------------- */
+  // Only the three that cost the most; a scan that lists everything is a
+  // ledger, not a finding.
+  for (const l of scanLeaks(data, at).slice(0, 3)) {
+    out.push(
+      l.kind === 'repeat'
+        ? {
+            id: `leak-${l.key}`,
+            severity: 'warn',
+            tag: 'leak',
+            readout: `UNTRACKED REPEAT · ${l.name.toUpperCase()} ${money(l.amount)}/${l.unit.toUpperCase()} · ${money(l.yearly)}/YR`,
+            metric: `${money(l.yearly)}/yr`,
+            href: advisor,
+          }
+        : {
+            id: `leak-${l.key}`,
+            severity: 'warn',
+            tag: 'creep',
+            readout: `${l.name.toUpperCase()} ${money(l.latest)} LAST MONTH VS ${money(l.baseline)} USUAL`,
+            metric: `+${pct((l.latest - l.baseline) / l.baseline)}`,
+            href: advisor,
+          }
+    );
+  }
+
+  /* Debt ------------------------------------------------------------------ */
+  const debts = data.goals.filter((g) => isDebt(g) && owed(g) > 0);
+  if (debts.length > 0) {
+    const total = debts.reduce((n, d) => n + owed(d), 0);
+    const [best] = comparePlans(debts, data.settings.debtExtra ?? 0);
+    out.push(
+      best.months === null
+        ? {
+            id: 'debt-stuck',
+            severity: 'alarm',
+            tag: 'debt',
+            readout: `OWED ${money(total)} · PAYMENTS NEVER CLEAR IT`,
+            metric: money(total),
+            href: '/bank/goals',
+          }
+        : {
+            id: 'debt-plan',
+            severity: best.months > 36 ? 'warn' : 'info',
+            tag: 'debt',
+            readout: `OWED ${money(total)} · CLEAR IN ${best.months} MONTHS (${best.strategy.toUpperCase()})${best.interest > 0 ? ` · ${money(best.interest)} INTEREST` : ''}`,
+            metric: `${best.months}mo`,
+            href: '/bank/goals',
+          }
+    );
+  }
+
   if (data.settings.islamicMode) out.push(...islamicFindings(data, money));
 
   return out.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);
@@ -386,6 +439,17 @@ function islamicFindings(data: KevlarData, money: (c: number) => string): Findin
       tag: 'review',
       readout: `${interestish.length} INCOME ${interestish.length === 1 ? 'ENTRY MENTIONS' : 'ENTRIES MENTION'} INTEREST`,
       href: advisor,
+    });
+  }
+
+  const interestDebts = data.goals.filter((g) => isDebt(g) && owed(g) > 0 && (g.debt?.aprBps ?? 0) > 0);
+  if (interestDebts.length > 0) {
+    out.push({
+      id: 'riba-debt',
+      severity: 'warn',
+      tag: 'riba',
+      readout: `${interestDebts.length} ${interestDebts.length === 1 ? 'DEBT CHARGES' : 'DEBTS CHARGE'} INTEREST · CLEAR ${interestDebts.length === 1 ? 'IT' : 'THEM'} FIRST`,
+      href: '/bank/goals',
     });
   }
 

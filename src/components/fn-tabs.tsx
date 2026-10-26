@@ -4,11 +4,10 @@ import { Txt } from '@/components/ui/primitives';
 import { color } from '@/theme/tokens';
 
 /**
- * Tab bar furniture, shared by every subsystem.
+ * Tab bar furniture.
  *
  * Terminals navigated by function key, so the tab bar is an F1..F5 strip with
- * a filled block on the active one rather than icons. Each subsystem passes
- * its own phosphor, which is the only thing that differs between them.
+ * a filled block on the active one rather than icons.
  */
 export function FnKey({
   n,
@@ -42,7 +41,7 @@ export function FnKey({
   );
 }
 
-/** The strip itself, tinted to the subsystem. */
+/** The strip itself, tinted to the caller's phosphor. */
 export const fnTabBarStyle = (tone: string) => ({
   backgroundColor: color.surface,
   borderTopColor: tone,

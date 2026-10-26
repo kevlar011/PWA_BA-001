@@ -55,18 +55,6 @@ export const color = {
   stampOk: '#4A7C3F',
 } as const;
 
-/**
- * Signature phosphor per subsystem.
- *
- * A real mainframe terminal shifted colour when you changed subsystem, and it
- * is the cheapest possible way to always know which one you are in. Banking
- * keeps the amber the whole app was built around; the docket runs cyan.
- */
-export const subsystem = {
-  bank: color.accent,
-  desk: color.transfer,
-} as const;
-
 /** Terminal-safe category colours — all readable against the dark phosphor bg. */
 export const swatch = [
   '#FFB000',

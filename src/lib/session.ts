@@ -21,8 +21,6 @@ export type Toast = {
    * his remark replaces once it arrives.
    */
   pending?: boolean;
-  /** Who is speaking. Docket remarks are VANE's, and she should get the credit. */
-  unit: 'bric' | 'vane';
 };
 
 type Session = {
@@ -30,7 +28,7 @@ type Session = {
   /** Shows a remark. `undo` makes it reversible. Returns its id for `amend`. */
   say: (
     text: string,
-    opts?: { mood?: Mood; undo?: () => void; pending?: boolean; unit?: 'bric' | 'vane' }
+    opts?: { mood?: Mood; undo?: () => void; pending?: boolean }
   ) => number;
   /** Replaces a pending remark's text, if it is still the one on screen. */
   amend: (id: number, text: string | null) => void;
@@ -50,10 +48,10 @@ type Session = {
   setUnlocked: (v: boolean) => void;
 
   /**
-   * The mainframe's boot sequence has played this launch.
+   * The boot sequence has played this launch.
    *
    * Session state rather than persisted: it should run once when the app
-   * opens, and not again every time he backs out of a subsystem.
+   * opens, and not again whenever something routes back to `/`.
    */
   booted: boolean;
   setBooted: (v: boolean) => void;
@@ -72,7 +70,6 @@ export const useSession = create<Session>()((set) => ({
         mood: opts.mood ?? 'idle',
         undo: opts.undo,
         pending: opts.pending,
-        unit: opts.unit ?? 'bric',
       },
     });
     return id;

@@ -27,7 +27,9 @@ import {
 } from './brief';
 import { formatIn } from './currency';
 import { dueLabel, monthLabel, shortDate, startOfBudgetMonth } from './date';
+import { isDebt, owed } from './debt';
 import { AiError, complete, DEFAULT_MODEL, parseJson, type AiMessage, type CompleteOptions } from './deepseek';
+import { scanLeaks } from './leaks';
 import { alive } from './merge';
 import { useSession } from './session';
 import { monthHistory, spendByCategory, useStore } from './store';
@@ -195,7 +197,23 @@ function ledgerSummary(data: KevlarData, at = Date.now()) {
         every: `${r.every} ${r.unit}${r.every > 1 ? 's' : ''}`,
         next: `${shortDate(r.nextDue)} (${dueLabel(r.nextDue)})`,
       })),
-    savingsGoals: data.goals.map((g) => ({ name: g.name, saved: $(g.saved), target: $(g.target) })),
+    savingsGoals: data.goals
+      .filter((g) => !isDebt(g))
+      .map((g) => ({ name: g.name, saved: $(g.saved), target: $(g.target) })),
+    debts: data.goals
+      .filter((g) => isDebt(g) && owed(g) > 0)
+      .map((g) => ({
+        name: g.name,
+        owed: $(owed(g)),
+        apr: `${((g.debt?.aprBps ?? 0) / 100).toFixed(2)}%`,
+        minimum: $(g.debt?.minPayment ?? 0),
+      })),
+    debtExtraPerMonth: $(data.settings.debtExtra ?? 0),
+    leaks: scanLeaks(data, at).map((l) =>
+      l.kind === 'repeat'
+        ? { type: 'untracked repeat charge', name: l.name, charge: $(l.amount), every: l.unit, perYear: $(l.yearly) }
+        : { type: 'category creeping up', category: l.name, lastMonth: $(l.latest), usual: $(l.baseline), perYearIfItHolds: $(l.yearly) }
+    ),
     lastSixMonths: monthHistory(data, 6, at).map((h) => ({
       month: monthLabel(h.start),
       in: $(h.income),
@@ -260,7 +278,9 @@ ${
   data.settings.islamicMode
     ? '- Islamic mode is on. Treat interest as riba and flag it. Zakat is 2.5% of qualifying wealth held above the nisab (85g of gold) for a full lunar year (hawl). You may explain the common scholarly position, but defer actual rulings to a qualified scholar.\n'
     : ''
-}- The ledger below was computed on the user's device moments ago. Its "findings" are the device's own analysis; trust their arithmetic.
+}- "leaks" are charges that repeat at a biller's rhythm but are not on the recurring list, and categories creeping above their usual level. Name them, give the yearly cost, and ask whether each is still wanted. Never assume one is unwanted.
+- "debts" are being paid down. The findings carry the device's payoff plan; quote its months and order rather than working out your own. Never suggest new borrowing to clear old borrowing.
+- The ledger below was computed on the user's device moments ago. Its "findings" are the device's own analysis; trust their arithmetic.
 
 LEDGER (JSON):
 ${JSON.stringify(ledgerSummary(data))}`;
@@ -505,7 +525,10 @@ export type BricEvent =
   | { type: 'undo' }
   | { type: 'restore'; count: number }
   | { type: 'bills'; names: string[] }
-  | { type: 'zakat-paid' };
+  | { type: 'zakat-paid' }
+  | { type: 'tracked'; name: string }
+  | { type: 'debt-added'; name: string }
+  | { type: 'debt-paid'; name: string; amount: number; cleared: boolean };
 
 function describeEvent(e: BricEvent, data: KevlarData): string {
   const $ = (c: number) => formatIn(c, data.settings.currency);
@@ -526,6 +549,12 @@ function describeEvent(e: BricEvent, data: KevlarData): string {
       return `While the app was closed, these standing payments fell due and were posted automatically: ${e.names.join(', ')}.`;
     case 'zakat-paid':
       return 'The user just marked their zakat as paid; a new hawl begins today if they remain above the nisab.';
+    case 'tracked':
+      return `The leak scan found "${e.name}" repeating unrecorded, and the user just put it on the recurring bills list.`;
+    case 'debt-added':
+      return `The user just added a debt, "${e.name}", to be paid down. It is in the ledger's debts.`;
+    case 'debt-paid':
+      return `The user just paid ${$(e.amount)} off "${e.name}"${e.cleared ? ', which clears it completely' : ''}. It is logged as money going out.`;
   }
 }
 

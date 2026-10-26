@@ -1,8 +1,8 @@
 /**
- * Shapes shared by both units' briefings.
+ * Briefing shapes.
  *
- * Lives on its own so VANE, who is rules over a local board, does not have to
- * import BRIC, who is now a network client.
+ * Lives on its own so plain screens can type a briefing without importing
+ * BRIC, who is a network client.
  */
 
 import type { Mood } from '@/components/ui/agency';

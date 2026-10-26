@@ -1,23 +1,23 @@
 import { Tabs } from 'expo-router';
 
 import { FnKey, fnTabBarStyle } from '@/components/fn-tabs';
-import { SubsystemFrame } from '@/components/system-bar';
-import { subsystem } from '@/theme/tokens';
+import { Frame } from '@/components/system-bar';
+import { color } from '@/theme/tokens';
 
 const key = (n: number, label: string) => ({
   tabBarIcon: ({ focused }: { focused: boolean }) => (
-    <FnKey n={n} label={label} focused={focused} tone={subsystem.bank} />
+    <FnKey n={n} label={label} focused={focused} tone={color.accent} />
   ),
 });
 
 export default function BankLayout() {
   return (
-    <SubsystemFrame name="Banking" code="BNK-001" tone={subsystem.bank}>
+    <Frame>
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarStyle: fnTabBarStyle(subsystem.bank),
+          tabBarStyle: fnTabBarStyle(color.accent),
         }}>
         <Tabs.Screen name="index" options={key(1, 'HOME')} />
         <Tabs.Screen name="log" options={key(2, 'LOG')} />
@@ -25,6 +25,6 @@ export default function BankLayout() {
         <Tabs.Screen name="goals" options={key(4, 'GOALS')} />
         <Tabs.Screen name="advisor" options={key(5, 'ADVISOR')} />
       </Tabs>
-    </SubsystemFrame>
+    </Frame>
   );
 }

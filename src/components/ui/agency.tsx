@@ -1,11 +1,9 @@
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BricCore, MOOD_TONE, type CoreState } from '@/components/bric-core';
 import { useBric } from '@/lib/bric-store';
 import { useStore } from '@/lib/store';
-import { VANE_TONE, VaneScope } from '@/components/vane-scope';
-import { scopeBlips, type Blip } from '@/lib/vane';
 import { color, glyph, radius, space } from '@/theme/tokens';
 import { Row, Txt } from './primitives';
 
@@ -119,15 +117,10 @@ export function FieldLabel({ children }: { children: string }) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * The units. Original constructs, not licensed characters.
+ * The unit. An original construct, not a licensed character.
  *
- * KEVLAR runs one per subsystem, and they must be tellable apart at a glance
- * from across a room:
- *
- *   · BRIC — banking. A live intelligence, drawn as a HUD reactor of turning
- *     rings (`bric-core.tsx`). Spins up when he thinks.
- *   · VANE — the docket. A half-dome sonar (`vane-scope.tsx`) whose blips are
- *     the board's real deadlines. Rules only; she never calls out.
+ * BRIC is a live intelligence, drawn as a HUD reactor of turning rings
+ * (`bric-core.tsx`). Spins up when he thinks.
  */
 export type Mood = 'idle' | 'happy' | 'warn' | 'alarm' | 'think';
 
@@ -163,45 +156,25 @@ export function Bric({
   );
 }
 
-/**
- * VANE as the board stands. Without `blips` she reads the docket herself, so
- * every scope on screen shows the same returns.
- */
-export function Vane({ mood = 'idle', size = 54, blips }: { mood?: Mood; size?: number; blips?: Blip[] }) {
-  const tasks = useStore((s) => s.tasks);
-  const settings = useStore((s) => s.settings);
-  const live = useMemo(
-    () => (blips ? null : scopeBlips({ tasks: tasks.filter((t) => !t.deletedAt), settings })),
-    [blips, tasks, settings]
-  );
-  return <VaneScope mood={mood} size={size} blips={blips ?? live ?? []} />;
-}
-
-/** Tone a unit is currently showing, for panels that need to match it. */
+/** Tone BRIC is currently showing, for panels that need to match it. */
 export const bricTone = (mood: Mood): string => MOOD_TONE[mood];
-export const vaneTone = (mood: Mood): string => VANE_TONE[mood];
 
-function Says({
-  unit,
-  mood,
+/** A speech panel from BRIC. */
+export function BricSays({
+  mood = 'idle',
   children,
   compact,
 }: {
-  unit: 'bric' | 'vane';
-  mood: Mood;
+  mood?: Mood;
   children: ReactNode;
   compact?: boolean;
 }) {
-  const tone = unit === 'bric' ? MOOD_TONE[mood] : VANE_TONE[mood];
+  const tone = MOOD_TONE[mood];
   const size = compact ? 38 : 50;
 
   return (
     <Row style={{ alignItems: 'flex-start', gap: space.md }}>
-      {unit === 'bric' ? (
-        <Bric mood={mood} size={size + 4} />
-      ) : (
-        <Vane mood={mood} size={size - 12} />
-      )}
+      <Bric mood={mood} size={size + 4} />
       <View style={[s.bubble, { borderColor: `${tone}55` }]}>
         <View style={[s.tail, { borderRightColor: `${tone}55` }]} />
         {typeof children === 'string' ? (
@@ -214,16 +187,6 @@ function Says({
       </View>
     </Row>
   );
-}
-
-/** A speech panel from BRIC. */
-export function BricSays(props: { mood?: Mood; children: ReactNode; compact?: boolean }) {
-  return <Says unit="bric" mood={props.mood ?? 'idle'} compact={props.compact}>{props.children}</Says>;
-}
-
-/** A speech panel from VANE. */
-export function VaneSays(props: { mood?: Mood; children: ReactNode; compact?: boolean }) {
-  return <Says unit="vane" mood={props.mood ?? 'idle'} compact={props.compact}>{props.children}</Says>;
 }
 
 const s = StyleSheet.create({

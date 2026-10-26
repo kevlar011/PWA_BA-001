@@ -45,9 +45,7 @@ export default function RootLayout() {
               animation: 'fade',
             }}>
             <Stack.Screen name="index" options={{ animation: 'fade' }} />
-            {/* Subsystems slide in from the mainframe and back out to it. */}
-            <Stack.Screen name="bank" options={{ animation: 'slide_from_right' }} />
-            <Stack.Screen name="desk" options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="bank" options={{ animation: 'fade' }} />
             <Stack.Screen name="onboarding" options={{ animation: 'none' }} />
             <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="statement" options={{ animation: 'slide_from_right' }} />
@@ -59,10 +57,6 @@ export default function RootLayout() {
             <Stack.Screen
               name="bric"
               options={{ presentation: 'modal', animation: 'fade_from_bottom' }}
-            />
-            <Stack.Screen
-              name="task"
-              options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
             />
           </Stack>
           <AppTick />

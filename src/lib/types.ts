@@ -1,12 +1,12 @@
 /**
  * KEVLAR domain model.
  *
- * KEVLAR is a shell hosting several subsystems. Their records live side by side
- * in one document because they share one owner, one encryption key and one
- * merge pass — splitting them would mean two of everything for no benefit.
+ * One person, one balance, one document — one owner, one encryption key and
+ * one merge pass.
  *
- *   · BANKING — one person, one balance
- *   · DOCKET  — notes, with structure where structure helps
+ * `tasks` is the retired docket's board. No screen shows it any more, but it
+ * still rides along in storage, sync and backups so nothing anyone wrote down
+ * is silently thrown away, and older builds on other devices merge cleanly.
  */
 
 export type TxKind = 'expense' | 'income';
@@ -63,6 +63,16 @@ export type Goal = Tracked & {
   saved: number;
   color: string;
   createdAt: number;
+  /**
+   * Present when this "goal" is a debt being paid down: `target` is what was
+   * owed when entered and `saved` is how much has been paid off since.
+   */
+  debt?: {
+    /** Annual rate in basis points (1999 = 19.99%). 0 for an interest-free loan. */
+    aprBps: number;
+    /** Minimum monthly payment, cents. */
+    minPayment: number;
+  };
 };
 
 export type RecurrenceUnit = 'week' | 'month' | 'year';
@@ -80,11 +90,11 @@ export type Recurring = Tracked & {
 };
 
 /* -------------------------------------------------------------------------- */
-/* DOCKET                                                                     */
+/* DOCKET (retired — kept only so old notes survive)                          */
 /* -------------------------------------------------------------------------- */
 
 /** Where a note sits. `blocked` is deliberately distinct from `open`: it means
- *  waiting on someone else, which VANE should nag about differently. */
+ *  waiting on someone else. */
 export type TaskStatus = 'open' | 'active' | 'blocked' | 'done';
 
 /** 0 routine · 1 priority · 2 critical. Numeric so sorting is trivial. */
@@ -157,6 +167,9 @@ export type Settings = {
   /** Records a hawl you have already settled, so BRIC stops asking. */
   lastZakatPaidAt?: number;
 
+  /** Extra put toward debts each month on top of the minimums, cents. */
+  debtExtra?: number;
+
   /** Start of the most recent month BRIC has already issued a statement for. */
   lastStatementFor?: number;
 
@@ -206,14 +219,8 @@ export type KevlarData = {
   goals: Goal[];
   recurring: Recurring[];
 
-  /* Docket */
+  /* Retired docket — stored and synced, never shown */
   tasks: Task[];
 
-  settings: Settings;
-};
-
-/** The docket's slice of the document, for screens that have no use for money. */
-export type DocketData = {
-  tasks: Task[];
   settings: Settings;
 };

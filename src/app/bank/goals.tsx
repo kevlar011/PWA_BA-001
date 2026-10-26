@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { DebtsSection } from '@/components/debts';
 import { FileHeader } from '@/components/ui/agency';
 import { Amount, Bar, Bubble, Button, Card, Empty, Row, Screen, SectionTitle, Txt } from '@/components/ui/primitives';
 import { advance, dueLabel, shortDate } from '@/lib/date';
+import { isDebt } from '@/lib/debt';
 import { formatMoney, parseAmount } from '@/lib/money';
 import { useData, useStore } from '@/lib/store';
 import type { RecurrenceUnit } from '@/lib/types';
@@ -39,6 +41,8 @@ export default function Goals() {
 
   const [topUp, setTopUp] = useState<{ id: string; value: string } | null>(null);
 
+  // Debts share the goals list; they get their own section below.
+  const savings = data.goals.filter((g) => !isDebt(g));
   const bills = [...data.recurring].sort((a, b) => a.nextDue - b.nextDue);
 
   /** What the subscriptions cost you across a year, normalised to a month. */
@@ -86,7 +90,7 @@ export default function Goals() {
       <FileHeader
         title="Objectives"
         code="K-05 / TARGETS"
-        subtitle="SAVINGS TARGETS & STANDING COMMITMENTS"
+        subtitle="SAVINGS, DEBTS & STANDING COMMITMENTS"
       />
 
       {/* Savings goals */}
@@ -134,10 +138,10 @@ export default function Goals() {
         </Card>
       )}
 
-      {data.goals.length === 0 && !goalForm ? (
+      {savings.length === 0 && !goalForm ? (
         <Empty icon="🎯" title="No goals yet" body="Set a target and watch the bar fill up." />
       ) : (
-        data.goals.map((g) => {
+        savings.map((g) => {
           const pct = g.target > 0 ? g.saved / g.target : 0;
           const done = g.saved >= g.target;
           const isTopping = topUp?.id === g.id;
@@ -214,6 +218,8 @@ export default function Goals() {
           );
         })
       )}
+
+      <DebtsSection />
 
       {/* Recurring bills */}
       <SectionTitle

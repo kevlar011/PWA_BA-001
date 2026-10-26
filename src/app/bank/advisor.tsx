@@ -11,8 +11,10 @@ import { buildFindings, computeMetrics, computeZakat, type Severity } from '@/li
 import { bricSay, useAdvisory } from '@/lib/bric';
 import { useBric } from '@/lib/bric-store';
 import { formatIn } from '@/lib/currency';
+import { advance } from '@/lib/date';
+import { scanLeaks } from '@/lib/leaks';
 import { useData, useStore } from '@/lib/store';
-import { color, glyph, space } from '@/theme/tokens';
+import { color, glyph, space, swatch } from '@/theme/tokens';
 
 const TONE: Record<Severity, string> = {
   good: color.income,
@@ -51,12 +53,15 @@ export default function Advisor() {
   const router = useRouter();
   const data = useData();
   const updateSettings = useStore((s) => s.updateSettings);
+  const addRecurring = useStore((s) => s.addRecurring);
   const { currency } = data.settings;
 
   const now = Date.now();
   const m = useMemo(() => computeMetrics(data, now), [data, now]);
   const zakat = useMemo(() => computeZakat(data), [data]);
   const telemetry = useMemo(() => buildFindings(data), [data]);
+  const leaks = useMemo(() => scanLeaks(data), [data]);
+  const leakYearly = leaks.reduce((n, l) => n + l.yearly, 0);
   const { advisory, fresh, linked, refresh } = useAdvisory(data);
   const faulted = useBric((s) => s.link === 'error');
 
@@ -231,6 +236,73 @@ export default function Advisor() {
         </>
       )}
 
+      {/* Leak scan */}
+      <SectionTitle>Leak scan</SectionTitle>
+      {leaks.length === 0 ? (
+        <Card tint={color.border}>
+          <LeaderRow label="Untracked repeats" value="NONE" tone={color.income} />
+          <LeaderRow label="Creeping categories" value="NONE" tone={color.income} />
+          <Txt variant="micro" faint style={{ marginTop: space.sm, lineHeight: 16 }}>
+            Scans for charges that recur like a subscription but are not on your bills list, and
+            categories running well above their usual month. Notes on entries sharpen it.
+          </Txt>
+        </Card>
+      ) : (
+        <Card label={`${leaks.length} found`} tint={color.warn}>
+          <Row style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+            <Txt variant="caption" dim>
+              COSTING YOU A YEAR
+            </Txt>
+            <Amount variant="title" tone={color.warn}>
+              {money(leakYearly)}
+            </Amount>
+          </Row>
+          {leaks.map((l) => (
+            <View key={l.key} style={s.leak}>
+              <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: space.md }}>
+                <View style={{ flex: 1 }}>
+                  <Txt variant="micro" weight="bold" spaced tone={color.warn}>
+                    {l.kind === 'repeat' ? 'UNTRACKED REPEAT' : 'CREEPING'}
+                  </Txt>
+                  <Txt variant="body" weight="bold" style={{ marginTop: 2 }}>
+                    {l.name}
+                  </Txt>
+                  <Txt variant="micro" faint style={{ marginTop: 2 }}>
+                    {l.kind === 'repeat'
+                      ? `${money(l.amount)} every ${l.unit} · seen ${l.count} times`
+                      : `${money(l.latest)} last month · usually ${money(l.baseline)}`}
+                  </Txt>
+                </View>
+                <Amount variant="lead" tone={color.warn}>
+                  {`${money(l.yearly)}/yr`}
+                </Amount>
+              </Row>
+              {l.kind === 'repeat' && (
+                <Pressable
+                  hitSlop={8}
+                  style={{ marginTop: space.sm }}
+                  onPress={() => {
+                    addRecurring({
+                      name: l.name,
+                      amount: l.amount,
+                      categoryId: l.categoryId,
+                      every: 1,
+                      unit: l.unit,
+                      nextDue: advance(l.lastDate, 1, l.unit),
+                      color: swatch[data.recurring.length % swatch.length],
+                    });
+                    bricSay(`${l.name.toUpperCase()} ADDED TO BILLS`, { type: 'tracked', name: l.name }, { mood: 'happy' });
+                  }}>
+                  <Txt variant="micro" weight="bold" spaced tone={color.accent}>
+                    {`${glyph.arrow} TRACK AS BILL`}
+                  </Txt>
+                </Pressable>
+              )}
+            </View>
+          ))}
+        </Card>
+      )}
+
       {/* Findings */}
       <SectionTitle
         action={
@@ -319,6 +391,11 @@ export default function Advisor() {
 }
 
 const s = StyleSheet.create({
+  leak: {
+    borderTopWidth: 1,
+    borderTopColor: color.border,
+    paddingVertical: space.md,
+  },
   tele: {
     flexDirection: 'row',
     alignItems: 'center',

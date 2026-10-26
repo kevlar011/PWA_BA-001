@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Bric, Vane } from '@/components/ui/agency';
+import { Bric } from '@/components/ui/agency';
 import { Fade, useTypewriter } from '@/components/ui/motion';
 import { Tap } from '@/components/ui/press';
 import { Row, Txt } from '@/components/ui/primitives';
@@ -26,8 +26,6 @@ type Step = {
   route: string;
   mood: Mood;
   says: string;
-  /** Who is talking. Each subsystem is introduced by its own unit. */
-  unit: 'bric' | 'vane';
   /** Spotlight position as a fraction of the viewport height. */
   top: number;
   height: number;
@@ -35,32 +33,14 @@ type Step = {
 
 const STEPS: Step[] = [
   {
-    route: '/',
-    unit: 'bric',
-    mood: 'happy',
-    says: "I'm BRIC. This is the mainframe — KEVLAR is a shell, and everything it runs is listed here.",
-    top: 0.22,
-    height: 0.16,
-  },
-  {
-    route: '/',
-    unit: 'bric',
-    mood: 'idle',
-    says: 'Two subsystems at present. Banking is mine. The docket belongs to VANE, and you will meet her shortly.',
-    top: 0.38,
-    height: 0.34,
-  },
-  {
     route: '/bank',
-    unit: 'bric',
-    mood: 'idle',
-    says: 'Banking. Your balance — everything you have, one figure. Drag it sideways for euros, dinars, wherever you are standing.',
+    mood: 'happy',
+    says: "I'm BRIC. KEVLAR is your ledger and I keep it. Your balance — everything you have, one figure. Drag it sideways for euros, dinars, wherever you are standing.",
     top: 0.2,
     height: 0.22,
   },
   {
     route: '/bank',
-    unit: 'bric',
     mood: 'idle',
     says: 'Quick log. Tap a category, enter the amount, done. That is the entire daily routine.',
     top: 0.5,
@@ -68,7 +48,6 @@ const STEPS: Step[] = [
   },
   {
     route: '/bank/log',
-    unit: 'bric',
     mood: 'idle',
     says: 'Everything you record lands here. Search it, filter it, long-press to remove.',
     top: 0.14,
@@ -76,59 +55,31 @@ const STEPS: Step[] = [
   },
   {
     route: '/bank/budgets',
-    unit: 'bric',
     mood: 'think',
     says: 'Set a cap per category. The meter turns amber near the line and red past it. No cap, no nagging.',
     top: 0.14,
     height: 0.26,
   },
   {
+    route: '/bank/goals',
+    mood: 'idle',
+    says: 'Goals, bills, and any debts you are carrying. Give me the balances and I will plan the fastest way out.',
+    top: 0.14,
+    height: 0.26,
+  },
+  {
     route: '/bank/advisor',
-    unit: 'bric',
     mood: 'warn',
-    says: 'The advisory. Link me in Settings and I write this up myself, zakat included — or open a channel from Banking and simply talk to me.',
+    says: 'The advisory. I check for leaks — subscriptions you forgot, spending that creeps — and write it up, zakat included. Link me in Settings, or open a channel from Banking and simply talk to me.',
     top: 0.14,
     height: 0.26,
   },
   {
-    route: '/desk',
-    unit: 'vane',
-    mood: 'idle',
-    says: "VANE. I keep the docket — notes, plans, anything you'd otherwise carry in your head. BRIC handles what you spend. I handle what you write down.",
-    top: 0.14,
-    height: 0.28,
-  },
-  {
-    route: '/desk',
-    unit: 'vane',
-    mood: 'idle',
-    says: 'Type in that box and hit plus. That is the whole thing. A deadline, a checklist, a status — all optional, and most entries need none of it.',
-    top: 0.44,
-    height: 0.16,
-  },
-  {
-    route: '/desk',
-    unit: 'vane',
-    mood: 'idle',
-    says: 'Open any entry for the full body. Search reaches into it, so writing at length costs you nothing later.',
-    top: 0.62,
-    height: 0.2,
-  },
-  {
-    route: '/desk/brief',
-    unit: 'vane',
-    mood: 'warn',
-    says: "And this is where I tell you what's slipping. Overdue, gone cold, too many things started at once. Rules over your notes, nothing more.",
-    top: 0.14,
-    height: 0.26,
-  },
-  {
-    route: '/',
-    unit: 'bric',
+    route: '/bank',
     mood: 'happy',
-    says: 'That is the whole machine, sir. Record something, or put something on the board, and we shall start earning our keep.',
-    top: 0.38,
-    height: 0.34,
+    says: 'That is the whole machine, sir. Record something and we shall start earning our keep.',
+    top: 0.2,
+    height: 0.22,
   },
 ];
 
@@ -185,7 +136,7 @@ export function Tour() {
 
   const finish = () => {
     updateSettings({ tourDone: true });
-    router.replace('/');
+    router.replace('/bank');
   };
   const next = () => (step >= STEPS.length - 1 ? finish() : setStep(step + 1));
 
@@ -218,14 +169,10 @@ export function Tour() {
         ]}>
         <View style={s.panel}>
           <Row style={{ gap: space.md, alignItems: 'flex-start' }}>
-            {current.unit === 'bric' ? (
-              <Bric mood={current.mood} size={46} />
-            ) : (
-              <Vane mood={current.mood} size={42} />
-            )}
+            <Bric mood={current.mood} size={46} />
             <View style={{ flex: 1 }}>
               <Txt variant="micro" spaced weight="bold" tone={color.rust}>
-                {`${current.unit.toUpperCase()} · ${step + 1} OF ${STEPS.length}`}
+                {`BRIC · ${step + 1} OF ${STEPS.length}`}
               </Txt>
               <Txt variant="caption" style={{ marginTop: 4, lineHeight: 19, minHeight: 76 }}>
                 {typed}
